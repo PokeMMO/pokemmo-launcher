@@ -19,14 +19,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Phaser;
 
-import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatLightLaf;
 import com.pokeemu.unix.config.Config;
 import com.pokeemu.unix.ui.MainFrame;
 import com.pokeemu.unix.updater.FeedManager;
 import com.pokeemu.unix.updater.UpdateFile;
 import com.pokeemu.unix.updater.UpdaterSwingWorker;
-import com.pokeemu.unix.util.GnomeThemeDetector;
 import com.pokeemu.unix.util.Util;
 
 import javax.swing.*;
@@ -692,15 +689,6 @@ public class UnixInstaller
 	public static void main(String[] args)
 	{
 		Config.load();
-
-		if(GnomeThemeDetector.isDark())
-		{
-			FlatDarkLaf.setup();
-		}
-		else
-		{
-			FlatLightLaf.setup();
-		}
 
 		Runtime.getRuntime().addShutdownHook(new Thread(Config::save));
 		UIManager.getLookAndFeelDefaults().put("defaultFont", new Font(Font.SANS_SERIF, Font.PLAIN, 14));
