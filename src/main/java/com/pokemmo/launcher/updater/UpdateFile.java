@@ -15,9 +15,9 @@ public class UpdateFile
 	public final boolean only_if_not_exists;
 	public final int size;
 
-	public String os;
-	public String arch;
-	public boolean executable;
+	public String os = "";
+	public String arch = "";
+	public boolean executable = false;
 
 	public UpdateFile(String name, String sha256, int size, boolean only_if_not_exists)
 	{
@@ -40,7 +40,6 @@ public class UpdateFile
 		//This prevents people from getting into inconsistent state if they change JRE/copy client between devices.
 		if(target.exists())
 			return true;
-
 		if(!os.isEmpty() && !os.equals(OS.get().getName()))
 			return false;
 		if(!arch.isEmpty() && !arch.equals(Arch.get().getName()))

@@ -5,9 +5,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.http.HttpClient;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -20,6 +23,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Phaser;
 
 import com.pokemmo.launcher.config.Config;
+import com.pokemmo.launcher.enums.Arch;
+import com.pokemmo.launcher.enums.OS;
+import com.pokemmo.launcher.enums.UpdateChannel;
 import com.pokemmo.launcher.ui.MainFrame;
 import com.pokemmo.launcher.updater.FeedManager;
 import com.pokemmo.launcher.updater.UpdateFile;
@@ -75,8 +81,7 @@ public class Launcher
 	/**
 	 * The default location of PokeMMO.exe and other files
 	 */
-	private String pokemmoDir;
-	private String jrePath;
+	private File pokemmoDir;
 
 	/**
 	 * The list of mirrors which have returned invalid results and must be skipped
@@ -93,30 +98,25 @@ public class Launcher
 	StringWriter stackTraceStringWriter = new StringWriter();
 	PrintWriter stackTracePrintWriter = new PrintWriter(stackTraceStringWriter);
 
-	public static final HttpClient httpClient;
+	public static HttpClient httpClient;
 	public static final String snapcraft, flatpak, httpClientUserAgent;
 
 	static
 	{
-		httpClient  = HttpClient.newBuilder()
-				.followRedirects(HttpClient.Redirect.NORMAL)
-				.connectTimeout(Duration.ofSeconds(20))
-				.build();
-
 		snapcraft = System.getenv("POKEMMO_IS_SNAPPED");
 		flatpak = System.getenv("POKEMMO_IS_FLATPAKED");
 
 		if(snapcraft != null)
 		{
-			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; UnixInstaller v"+ Launcher.INSTALLER_VERSION+") (Snapcraft)";
+			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION+") (Snapcraft)";
 		}
 		else if (flatpak != null)
 		{
-			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; UnixInstaller v"+ Launcher.INSTALLER_VERSION+") (Flatpak)";
+			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION+") (Flatpak)";
 		}
 		else
 		{
-			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; UnixInstaller v"+ Launcher.INSTALLER_VERSION+")";
+			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION+")";
 		}
 	}
 
@@ -124,16 +124,20 @@ public class Launcher
 	{
 		String fileSeparator = File.separator;
 
-		String user_home = System.getProperty("user.home");
-		String pokemmo_data_home = System.getenv("SNAP_USER_COMMON");
-		if(pokemmo_data_home == null)
+		//Use current working directory if not overridden
+		pokemmoDir = new File(".").toPath().toAbsolutePath().normalize().toFile();
+
+		if(flatpak != null || snapcraft != null)
 		{
-			pokemmo_data_home = Objects.requireNonNullElse(System.getenv("XDG_DATA_HOME"), user_home + fileSeparator + ".local" + fileSeparator + "share");
+			String user_home = System.getProperty("user.home");
+			String pokemmo_data_home = System.getenv("SNAP_USER_COMMON");
+			if(pokemmo_data_home == null)
+			{
+				pokemmo_data_home = Objects.requireNonNullElse(System.getenv("XDG_DATA_HOME"), user_home + fileSeparator + ".local" + fileSeparator + "share");
+			}
+			pokemmoDir = new File(pokemmo_data_home + fileSeparator + "pokemmo-client-" + Config.UPDATE_CHANNEL.toString() + fileSeparator);
 		}
 
-		pokemmoDir = pokemmo_data_home + fileSeparator + "pokemmo-client-" + Config.UPDATE_CHANNEL.toString() + fileSeparator;
-
-		jrePath = System.getProperty("java.home") + fileSeparator + "bin" + fileSeparator + "java";
 		mainFrame = new MainFrame(this);
 
 		String version = System.getProperty("java.specification.version");
@@ -161,23 +165,25 @@ public class Launcher
 			return;
 		}
 
+		System.out.println("Running Launcher for channel " + Config.UPDATE_CHANNEL);
+
 		checkForRunning();
 		downloadFeeds();
 
-		File pokemmo_directory = new File(pokemmoDir);
-		if(!pokemmo_directory.exists())
+		File revisionFile = new File(pokemmoDir, "revision.txt");
+		if(!pokemmoDir.exists() || !revisionFile.exists())
 		{
 			createPokemmoDir();
 			firstRun = true;
 		}
 
-		if(!pokemmo_directory.isDirectory())
+		if(!pokemmoDir.isDirectory())
 		{
 			mainFrame.showError(Config.getString("error.dir_not_dir", pokemmoDir, "DIR_5"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
 			return;
 		}
 
-		if(!pokemmo_directory.setReadable(true) || !pokemmo_directory.setWritable(true) || !pokemmo_directory.setExecutable(true))
+		if(!pokemmoDir.setReadable(true) || !pokemmoDir.setWritable(true) || !pokemmoDir.setExecutable(true))
 		{
 			mainFrame.showError(Config.getString("error.dir_not_accessible", pokemmoDir, "DIR_2"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
 			return;
@@ -200,13 +206,12 @@ public class Launcher
 				displayMainFrame();
 			}
 
-			File revision_file = new File(pokemmoDir + "/revision.txt");
 			int revision = -1;
-			if(revision_file.exists() && revision_file.isFile())
+			if(revisionFile.exists() && revisionFile.isFile())
 			{
 				try
 				{
-					revision = Integer.parseInt(new String(Files.readAllBytes(revision_file.toPath())));
+					revision = Integer.parseInt(new String(Files.readAllBytes(revisionFile.toPath())));
 				}
 				catch(IOException | NumberFormatException e)
 				{
@@ -249,27 +254,22 @@ public class Launcher
 
 	private void start() throws InterruptedException
 	{
-		List<String> final_args = new ArrayList<>();
+		List<String> args = new ArrayList<>();
 
-		final_args.add(jrePath);
-		final_args.add("-XX:+IgnoreUnrecognizedVMOptions");
+		if(OS.get() == OS.WINDOWS)
+		{
+			if(Arch.get() == Arch.X64)
+				args.add("PokeMMO.exe");
+			else
+				args.add("bin" + File.separator + OS.get().getName() + File.separator + Arch.get().getName() + File.separator + "PokeMMO.exe");
+		}
+		else
+		{
+			args.add("bin" + File.separator + OS.get().getName() + File.separator + Arch.get().getName() + File.separator + "PokeMMO");
+		}
 
-		final_args.add("-XX:+UseZGC");
-		final_args.add("-XX:+ZGenerational");
-		final_args.add("-Xms192M");
-		final_args.add("-Xmx" + Config.HARD_MAX_MEMORY_MB + "M");
-		final_args.add("-XX:+UnlockDiagnosticVMOptions");
-		final_args.add("-XX:-UseAESCTRIntrinsics");
-		final_args.add("-XX:-UseAESIntrinsics");
-		final_args.add("-Dfile.encoding=UTF-8");
-
-		/*
-		 * The default parameters used for launching the PokeMMO Client
-		 */
-		final_args.addAll(Arrays.asList("-cp", "PokeMMO.exe", "com.pokeemu.client.Client"));
-
-		ProcessBuilder pb = new ProcessBuilder(final_args);
-		pb.directory(new File(pokemmoDir));
+		ProcessBuilder pb = new ProcessBuilder(args);
+		pb.directory(pokemmoDir);
 		pb.inheritIO();
 
 		// Used by KDE to xdg-portal file dialogues
@@ -285,7 +285,7 @@ public class Launcher
 			pb.environment().put("POKEMMO_IS_FLATPAKED", flatpak);
 		}
 
-		System.out.println("Starting with params " + Arrays.toString(final_args.toArray(new String[0])));
+		System.out.println("Starting with params " + Arrays.toString(args.toArray(new String[0])));
 
 		try
 		{
@@ -320,6 +320,9 @@ public class Launcher
 
 		String launcherPath = processInfo.command().get();
 
+		System.out.println("pokemmoDir: " + pokemmoDir.getAbsolutePath());
+		System.out.println("launcherPath: " + launcherPath);
+
 		List<ProcessHandle> destroyables = new ArrayList<>();
 		ProcessHandle.allProcesses().filter(ProcessHandle::isAlive).forEach(f ->
 		{
@@ -328,8 +331,19 @@ public class Launcher
 				if(f.info().command().isPresent() && f.pid() != processHandle.pid() && f.info().user().isPresent() && f.info().user().equals(processInfo.user()))
 				{
 					String path = f.info().command().get();
-					if(path.equals(launcherPath) || path.equals(jrePath))
+
+					//If sandboxed, only one process should be using this launcher (legacy java stuff)
+					//TODO: Remove after full native-image
+					if((flatpak != null || snapcraft != null) && path.equals(launcherPath))
 					{
+						System.out.println("Found destroyable " + path);
+						destroyables.add(f);
+						return;
+					}
+
+					if(path.startsWith(pokemmoDir.getAbsolutePath()))
+					{
+						System.out.println("Found destroyable " + path);
 						destroyables.add(f);
 					}
 				}
@@ -500,14 +514,15 @@ public class Launcher
 	private boolean downloadFile(UpdateFile file)
 	{
 		String checksum_sha256 = file.sha256;
-		for(int mirror_index = 0; mirror_index < FeedManager.DOWNLOAD_MIRRORS.length; mirror_index++)
+		String[] mirrors = Config.UPDATE_CHANNEL.getMirrors();
+		for(int mirror_index = 0; mirror_index < mirrors.length; mirror_index++)
 		{
 			if(disabledMirrors.contains(mirror_index))
 			{
 				continue;
 			}
 
-			if(!Util.downloadUrlToFile(httpClient, FeedManager.DOWNLOAD_MIRRORS[mirror_index] + "/" + Config.UPDATE_CHANNEL + "/current/client/" + file.name + "?v=" + file.getCacheBuster(), getFile(file.name + ".TEMPORARY")))
+			if(!Util.downloadUrlToFile(httpClient, mirrors[mirror_index] + "/" + Config.UPDATE_CHANNEL.urlComponent() + "/current/client/" + file.name + "?v=" + file.getCacheBuster(), getFile(file.name + ".TEMPORARY")))
 			{
 				mainFrame.showInfo("status.files.failed_download", file.name, mirror_index);
 				disabledMirrors.add(mirror_index);
@@ -608,12 +623,12 @@ public class Launcher
 
 	private File getFile(String path)
 	{
-		return new File(pokemmoDir + path);
+		return new File(pokemmoDir, path);
 	}
 
 	public File getPokemmoDir()
 	{
-		return new File(pokemmoDir);
+		return pokemmoDir;
 	}
 
 	public void createPokemmoDir()
@@ -628,16 +643,17 @@ public class Launcher
 	public void createSymlinkedDirectories()
 	{
 		// Screenshots symlink is only created if XDG_PICTURES_DIR is set. There is no way to predict what the pictures directory is otherwise set to, due to each DE implementing its own (and potentially different languages)
-		String xdg_pictures_home = System.getenv("XDG_PICTURES_DIR");
-		if(xdg_pictures_home != null)
+		String xdg_pictures_dir = System.getenv("XDG_PICTURES_DIR");
+		if(xdg_pictures_dir != null)
 		{
-			File screenshots = new File(xdg_pictures_home + "/PokeMMO Screenshots/");
+			File xdgPicturesDir = new File(xdg_pictures_dir);
+			File screenshotsDir = new File(xdgPicturesDir, "PokeMMO Screenshots");
 
-			if(!screenshots.exists() && screenshots.mkdir())
+			if(!screenshotsDir.exists() && screenshotsDir.mkdir())
 			{
 				try
 				{
-					Files.createSymbolicLink(new File(pokemmoDir + "/screenshots").toPath(), screenshots.toPath());
+					Files.createSymbolicLink(new File(pokemmoDir, "screenshots").toPath(), screenshotsDir.toPath());
 				}
 				catch(IOException e)
 				{
@@ -677,14 +693,57 @@ public class Launcher
 		Runtime.getRuntime().addShutdownHook(new Thread(Config::save));
 		UIManager.getLookAndFeelDefaults().put("defaultFont", new Font(Font.SANS_SERIF, Font.PLAIN, 14));
 
-		for(String arg : args)
+		String httpAuthPassword = "";
+
+		ArrayDeque<String> queue = new ArrayDeque<>(Arrays.asList(args));
+		while(!queue.isEmpty())
 		{
-			if(arg.equals("--force-ui"))
+			String arg = queue.poll();
+			if(arg.equals("--force-ui") || arg.equals("--update"))
 			{
 				QUICK_AUTOSTART = false;
-				break;
+				continue;
+			}
+
+			if(arg.equals("--auth_password"))
+			{
+				if(!queue.isEmpty())
+				{
+					httpAuthPassword = queue.poll();
+				}
+				continue;
+			}
+
+			if(arg.equals("--channel"))
+			{
+				if(!queue.isEmpty())
+				{
+					UpdateChannel channel = UpdateChannel.valueOf(queue.poll());
+					Config.UPDATE_CHANNEL = channel;
+				}
+				continue;
 			}
 		}
+
+		HttpClient.Builder builder = HttpClient.newBuilder()
+				.followRedirects(HttpClient.Redirect.NORMAL)
+				.connectTimeout(Duration.ofSeconds(20));
+
+		if(!httpAuthPassword.isEmpty())
+		{
+			char[] password = httpAuthPassword.toCharArray();
+			builder.authenticator(new Authenticator()
+			{
+				@Override
+				protected PasswordAuthentication getPasswordAuthentication()
+				{
+					return new PasswordAuthentication("authuser", password);
+				}
+			});
+		}
+
+		httpClient = builder.build();
+
 
 		new Launcher().run();
 	}

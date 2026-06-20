@@ -41,7 +41,7 @@ jar {
 task dist(type: GradleBuild) {
     buildName "dist"
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['clean', 'createRuntime', 'jar']
+    tasks = ['clean', 'jar']
 }
 
 assemble.dependsOn dist

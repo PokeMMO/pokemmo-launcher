@@ -17,6 +17,7 @@ import org.xml.sax.InputSource;
 
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.config.Config;
+import com.pokemmo.launcher.enums.UpdateChannel;
 import com.pokemmo.launcher.ui.MainFrame;
 import com.pokemmo.launcher.util.CryptoUtil;
 import com.pokemmo.launcher.util.Util;
@@ -31,12 +32,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
  */
 public class FeedManager
 {
-	public static final String[] DOWNLOAD_MIRRORS = {
-			"https://dl.pokemmo.com/",
-			"https://files.pokemmo.com/",
-			"https://dl.pokemmo.download/"
-	};
-
 	/**
 	 * Min client revision allowed. If lower, will force update.
 	 */
@@ -46,19 +41,21 @@ public class FeedManager
 
 	public static void load(MainFrame mainFrame)
 	{
+		UpdateChannel channel = Config.UPDATE_CHANNEL;
+
 		String sig_format = "SHA256withRSA";
-		PublicKey pub_key = CryptoUtil.getFeedsPublicKey();
+		PublicKey pub_key = channel.getPublicKey();
 
 		List<Throwable> failures = new ArrayList<>();
-
-		loop:for(String mirror : DOWNLOAD_MIRRORS)
+		loop:for(String mirror : channel.getMirrors())
 		{
 			try
 			{
-				CompletableFuture<HttpResponse<InputStream>> mainFeedResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.txt");
-				CompletableFuture<HttpResponse<InputStream>> signatureResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.sig256");
-				CompletableFuture<HttpResponse<InputStream>> updateFeedResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.txt");
-				CompletableFuture<HttpResponse<InputStream>> updateSignatureResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.sig256");
+				System.out.println("Loading feed from " + mirror);
+				CompletableFuture<HttpResponse<InputStream>> mainFeedResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + channel.urlComponent() + "/current/feeds/main_feed.txt");
+				CompletableFuture<HttpResponse<InputStream>> signatureResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + channel.urlComponent() + "/current/feeds/main_feed.sig256");
+				CompletableFuture<HttpResponse<InputStream>> updateFeedResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + channel.urlComponent() + "/current/feeds/update_feed.txt");
+				CompletableFuture<HttpResponse<InputStream>> updateSignatureResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + channel.urlComponent() + "/current/feeds/update_feed.sig256");
 
 				// Using CompleteableFuture#allOf#join will eagerly terminate this mirror's processing if one of the URLs throws some kind of exception
 				CompletableFuture.allOf(mainFeedResponse, signatureResponse, updateFeedResponse, updateSignatureResponse)

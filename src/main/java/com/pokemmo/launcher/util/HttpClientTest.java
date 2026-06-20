@@ -46,13 +46,13 @@ public class HttpClientTest
 
 
 		System.out.println("Waiting on CryptoUtil#verifySignature.." + (System.currentTimeMillis() - start)+"ms");
-		if(!CryptoUtil.verifySignature(mainFeedResponse.get().body().readAllBytes(), signatureResponse.get().body().readAllBytes(), CryptoUtil.getFeedsPublicKey(), "SHA256withRSA"))
+		if(!CryptoUtil.verifySignature(mainFeedResponse.get().body().readAllBytes(), signatureResponse.get().body().readAllBytes(), CryptoUtil.getLivePublicKey(), "SHA256withRSA"))
 		{
 			System.out.println("Main feed failed verification");
 		}
 		System.out.println("Main feed passed verification in " + (System.currentTimeMillis() - start)+"ms");
 
-		if(!CryptoUtil.verifySignature(updateFeedResponse.get().body().readAllBytes(), updateSignatureResponse.get().body().readAllBytes(), CryptoUtil.getFeedsPublicKey(), "SHA256withRSA"))
+		if(!CryptoUtil.verifySignature(updateFeedResponse.get().body().readAllBytes(), updateSignatureResponse.get().body().readAllBytes(), CryptoUtil.getLivePublicKey(), "SHA256withRSA"))
 		{
 			System.out.println("Update feed failed verification");
 		}
