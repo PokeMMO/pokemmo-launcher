@@ -19,6 +19,8 @@ public class UpdateFile
 	public String arch = "";
 	public boolean executable = false;
 
+	public long downloadedBytes = 0;
+
 	public UpdateFile(String name, String sha256, int size, boolean only_if_not_exists)
 	{
 		this.name = name;

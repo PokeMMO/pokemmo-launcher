@@ -2,29 +2,26 @@ package com.pokemmo.launcher.util;
 
 import java.awt.*;
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Formatter;
-import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.Inflater;
-import java.util.zip.InflaterInputStream;
 
+import com.github.mizosoft.methanol.Methanol;
+import com.github.mizosoft.methanol.ProgressTracker;
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.config.Config;
 import com.pokemmo.launcher.ui.MainFrame;
@@ -262,9 +259,9 @@ public class Util
 	}
 
 	/**
-	 * Sends a synchronized HTTP GET request using the requested HttpClient, returning the value as an InputStream
+	 * Sends a synchronized HTTP GET request using the requested Methanol, returning the value as an InputStream
 	 */
-	public static HttpResponse<InputStream> getUrl(HttpClient httpClient, String raw_url) throws URISyntaxException, IOException, InterruptedException
+	public static HttpResponse<InputStream> getUrl(Methanol httpClient, String raw_url) throws URISyntaxException, IOException, InterruptedException
 	{
 		HttpRequest httpRequest = HttpRequest.newBuilder(new URI(raw_url))
 				.setHeader("User-Agent", Launcher.httpClientUserAgent)
@@ -275,9 +272,9 @@ public class Util
 	}
 
 	/**
-	 * Sends an asynchronous HTTP GET request using the requested HttpClient, returning the value as an InputStream
+	 * Sends an asynchronous HTTP GET request using the requested Methanol, returning the value as an InputStream
 	 */
-	public static CompletableFuture<HttpResponse<InputStream>> getUrlAsync(HttpClient httpClient, String raw_url) throws URISyntaxException
+	public static CompletableFuture<HttpResponse<InputStream>> getUrlAsync(Methanol httpClient, String raw_url) throws URISyntaxException
 	{
 		HttpRequest httpRequest = HttpRequest.newBuilder(new URI(raw_url))
 				.setHeader("User-Agent", Launcher.httpClientUserAgent)
@@ -287,19 +284,26 @@ public class Util
 		return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
 	}
 
+	static final ProgressTracker progressTracker = ProgressTracker.newBuilder()
+			.bytesTransferredThreshold(60 * 1024) // 60 kB
+			.build();
+
 	/**
-	 * Sends a synchronized HTTP GET request using the requested HttpClient, returning the value as an InputStream.
+	 * Sends a synchronized HTTP GET request using the requested Methanol, returning the value as an InputStream.
 	 * This method accepts content compression where available
 	 */
-	public static HttpResponse<InputStream> downloadFile(HttpClient httpClient, String raw_url) throws URISyntaxException, IOException, InterruptedException
+	public static HttpResponse<Path> downloadFile(Methanol httpClient, String raw_url, File file, ProgressTracker.Listener progressListener) throws URISyntaxException, IOException, InterruptedException
 	{
 		HttpRequest httpRequest = HttpRequest.newBuilder(new URI(raw_url))
 				.setHeader("User-Agent", Launcher.httpClientUserAgent)
-				.setHeader("Accept-Encoding", "gzip, deflate")
 				.GET()
 				.build();
 
-		return httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
+		var bodyHandler = HttpResponse.BodyHandlers.ofFile(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+		if(progressListener != null)
+			bodyHandler = progressTracker.tracking(bodyHandler, progressListener);
+
+		return httpClient.send(httpRequest, bodyHandler);
 	}
 
 	/**
@@ -307,38 +311,15 @@ public class Util
 	 * @return true, if the http server successfully responded to the request. false if an exception occurred.
 	 * A true response does not necessarily mean the server responded with what you want (e.g. a 404 request will return an http snippet.)
 	 */
-	public static boolean downloadUrlToFile(HttpClient httpClient, String raw_url, File file)
+	public static boolean downloadUrlToFile(Methanol httpClient, String raw_url, File file, ProgressTracker.Listener progressListener)
 	{
 		try
 		{
 			raw_url = raw_url.replace("\\", "/");
 
-			HttpResponse<InputStream> downloadResponse = downloadFile(httpClient, raw_url);
-			String encoding = downloadResponse.headers().firstValue("Content-Encoding").orElse("");
+			file.getParentFile().mkdirs();
 
-			InputStream resultingInputStream;
-			InputStream rawInputStream = downloadResponse.body();
-
-			switch(encoding.toLowerCase(Locale.ROOT))
-			{
-				case "gzip" -> resultingInputStream = new GZIPInputStream(rawInputStream);
-				case "deflate" -> resultingInputStream = new InflaterInputStream(rawInputStream, new Inflater(true));
-				default -> resultingInputStream = rawInputStream;
-			}
-
-			//Make parent dirs if not exist
-			try(BufferedInputStream in = new BufferedInputStream(resultingInputStream) ;
-				BufferedOutputStream bout = new BufferedOutputStream(new FileOutputStream(file), 1024))
-			{
-				byte[] data = new byte[1024];
-				int x;
-
-				while((x = in.read(data, 0, 1024)) >= 0)
-				{
-					bout.write(data, 0, x);
-				}
-			}
-
+			downloadFile(httpClient, raw_url, file, progressListener);
 			return true;
 		}
 		catch(Exception e)

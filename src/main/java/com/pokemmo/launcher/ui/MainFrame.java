@@ -39,9 +39,6 @@ public class MainFrame extends JFrame implements ActionListener
 
 	private final ExecutorService executorService;
 
-	private int downloaded_bytes;
-	private long last_download_progress_update = System.currentTimeMillis(), last_download_speed_update, last_download_speed_update_bytes;
-
 	private static MainFrame instance;
 
 	private final JDialog configWindow;
@@ -294,12 +291,41 @@ public class MainFrame extends JFrame implements ActionListener
 		validate();
 	}
 
-	public void updateDLSpeed(final long bytes_per_second)
+	public void updateProgress(int progress)
 	{
 		if(!SwingUtilities.isEventDispatchThread())
-			SwingUtilities.invokeLater(() -> dlSpeed.setText(humanReadableByteCount(bytes_per_second, false) + "/s"));
+		{
+			SwingUtilities.invokeLater(() -> updateProgress(progress));
+			return;
+		}
+
+		if(progress > 0)
+		{
+			progressBar.setIndeterminate(false);
+			progressBar.setValue(progress);
+		}
 		else
-			dlSpeed.setText(humanReadableByteCount(bytes_per_second, false) + "/s");
+		{
+			progressBar.setIndeterminate(true);
+			progressBar.setValue(progress);
+		}
+	}
+
+	public void updateDLSpeed(long bytes_per_second)
+	{
+		if(!SwingUtilities.isEventDispatchThread())
+		{
+			SwingUtilities.invokeLater(() -> updateDLSpeed(bytes_per_second));
+			return;
+		}
+
+		if(bytes_per_second < 0)
+		{
+			dlSpeed.setText("");
+			return;
+		}
+
+		dlSpeed.setText(humanReadableByteCount(bytes_per_second, false) + "/s");
 	}
 
 	public static String humanReadableByteCount(long bytes, boolean si)
@@ -382,33 +408,6 @@ public class MainFrame extends JFrame implements ActionListener
 
 		if(runnable != null)
 			executorService.execute(runnable);
-	}
-
-	public void showDownloadProgress(int bytes)
-	{
-		downloaded_bytes += bytes;
-
-		if(System.currentTimeMillis() - last_download_progress_update > 100)
-		{
-			last_download_progress_update = System.currentTimeMillis();
-		}
-
-		if(last_download_speed_update == 0)
-		{
-			last_download_speed_update = System.currentTimeMillis();
-		}
-
-		if(System.currentTimeMillis() - last_download_speed_update > 1000)
-		{
-			last_download_speed_update = System.currentTimeMillis();
-
-			if(last_download_speed_update_bytes > 0)
-			{
-				updateDLSpeed(downloaded_bytes - last_download_speed_update_bytes);
-			}
-
-			last_download_speed_update_bytes = downloaded_bytes;
-		}
 	}
 
 	public void setCanStart()

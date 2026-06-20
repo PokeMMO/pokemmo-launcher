@@ -22,6 +22,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Phaser;
 
+import com.github.mizosoft.methanol.Methanol;
+import com.github.mizosoft.methanol.ProgressTracker;
 import com.pokemmo.launcher.config.Config;
 import com.pokemmo.launcher.enums.Arch;
 import com.pokemmo.launcher.enums.OS;
@@ -100,7 +102,7 @@ public class Launcher
 	StringWriter stackTraceStringWriter = new StringWriter();
 	PrintWriter stackTracePrintWriter = new PrintWriter(stackTraceStringWriter);
 
-	public static HttpClient httpClient;
+	public static Methanol httpClient;
 	public static final String snapcraft, flatpak, httpClientUserAgent;
 
 	static
@@ -479,13 +481,18 @@ public class Launcher
 
 		Phaser phaser = new Phaser(to_download.size() + 1);
 
+		lastSpeedTime = System.currentTimeMillis();
 		for(UpdateFile file : to_download)
 		{
 			networkExecutorService.submit(() ->
 			{
-				mainFrame.addDetail("status.files.downloading", ((phaser.getArrivedParties() * 100) / to_download.size()), file.name);
+				mainFrame.addDetail("status.files.downloading", getProgress(to_download), file.name);
 
-				if(downloadFile(file))
+				if(downloadFile(file, (progress -> {
+					file.downloadedBytes = progress.totalBytesTransferred();
+
+					mainFrame.updateProgress(getProgress(to_download));
+				})))
 				{
 					phaser.arrive();
 				}
@@ -504,8 +511,42 @@ public class Launcher
 		networkExecutorService.shutdown();
 		isUpdating = false;
 
+		mainFrame.updateDLSpeed(-1);
 		mainFrame.showInfo("status.check_success");
 		mainFrame.setStatus("status.ready", 100);
+	}
+
+	private long lastSpeedTime = 0;
+	private long lastSpeedBytes = 0;
+
+	private int getProgress(List<UpdateFile> files)
+	{
+		long totalBytes = 0;
+		long downloadedBytes = 0;
+
+		for(UpdateFile file : files)
+		{
+			totalBytes += file.size;
+			downloadedBytes += file.downloadedBytes;
+		}
+
+		int progress = totalBytes < 1 ? 100 : Math.round((downloadedBytes * 100f) / totalBytes);
+		if(downloadedBytes >= totalBytes)
+			progress = 100;
+
+		long now = System.currentTimeMillis();
+		if(now - lastSpeedTime >= 500)
+		{
+			long bytesThisFrame = downloadedBytes - lastSpeedBytes;
+			long bytesPerSecond = (bytesThisFrame * 1000) / (now - lastSpeedTime);
+
+			lastSpeedTime = now;
+			lastSpeedBytes = downloadedBytes;
+
+			mainFrame.updateDLSpeed(bytesPerSecond);
+		}
+
+		return progress;
 	}
 
 	public boolean isUpdating()
@@ -513,7 +554,7 @@ public class Launcher
 		return isUpdating;
 	}
 
-	private boolean downloadFile(UpdateFile file)
+	private boolean downloadFile(UpdateFile file, ProgressTracker.Listener progressListener)
 	{
 		String checksum_sha256 = file.sha256;
 		String[] mirrors = Config.UPDATE_CHANNEL.getMirrors();
@@ -524,7 +565,7 @@ public class Launcher
 				continue;
 			}
 
-			if(!Util.downloadUrlToFile(httpClient, mirrors[mirror_index] + "/" + Config.UPDATE_CHANNEL.urlComponent() + "/current/client/" + file.name + "?v=" + file.getCacheBuster(), getFile(file.name + ".TEMPORARY")))
+			if(!Util.downloadUrlToFile(httpClient, mirrors[mirror_index] + "/" + Config.UPDATE_CHANNEL.urlComponent() + "/current/client/" + file.name + "?v=" + file.getCacheBuster(), getFile(file.name + ".TEMPORARY"), progressListener))
 			{
 				mainFrame.showInfo("status.files.failed_download", file.name, mirror_index);
 				disabledMirrors.add(mirror_index);
@@ -738,7 +779,7 @@ public class Launcher
 			}
 		}
 
-		HttpClient.Builder builder = HttpClient.newBuilder()
+		Methanol.Builder builder = Methanol.newBuilder()
 				.followRedirects(HttpClient.Redirect.NORMAL)
 				.connectTimeout(Duration.ofSeconds(20));
 
