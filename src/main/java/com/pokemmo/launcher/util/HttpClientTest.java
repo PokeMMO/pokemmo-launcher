@@ -1,6 +1,5 @@
 package com.pokemmo.launcher.util;
 
-import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 
@@ -21,10 +20,10 @@ public class HttpClientTest
 	{
 		long start = System.currentTimeMillis();
 
-		CompletableFuture<HttpResponse<InputStream>> mainFeedResponse = Util.getUrlAsync(Launcher.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.txt");
-		CompletableFuture<HttpResponse<InputStream>> signatureResponse = Util.getUrlAsync(Launcher.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.sig256");
-		CompletableFuture<HttpResponse<InputStream>> updateFeedResponse = Util.getUrlAsync(Launcher.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.txt");
-		CompletableFuture<HttpResponse<InputStream>> updateSignatureResponse = Util.getUrlAsync(Launcher.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.sig256");
+		CompletableFuture<HttpResponse<byte[]>> mainFeedResponse = Util.getUrlAsync(Launcher.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.txt");
+		CompletableFuture<HttpResponse<byte[]>> signatureResponse = Util.getUrlAsync(Launcher.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.sig256");
+		CompletableFuture<HttpResponse<byte[]>> updateFeedResponse = Util.getUrlAsync(Launcher.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.txt");
+		CompletableFuture<HttpResponse<byte[]>> updateSignatureResponse = Util.getUrlAsync(Launcher.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.sig256");
 
 		System.out.println("Waiting on CompleteableFuture#allOf.." + (System.currentTimeMillis() - start)+"ms");
 		// Using CompleteableFuture#allOf#join will eagerly terminate this mirror's processing if one of the URLs throws some kind of exception
@@ -38,13 +37,13 @@ public class HttpClientTest
 
 
 		System.out.println("Waiting on CryptoUtil#verifySignature.." + (System.currentTimeMillis() - start)+"ms");
-		if(!CryptoUtil.verifySignature(mainFeedResponse.get().body().readAllBytes(), signatureResponse.get().body().readAllBytes(), CryptoUtil.getLivePublicKey(), "SHA256withRSA"))
+		if(!CryptoUtil.verifySignature(mainFeedResponse.get().body(), signatureResponse.get().body(), CryptoUtil.getLivePublicKey(), "SHA256withRSA"))
 		{
 			System.out.println("Main feed failed verification");
 		}
 		System.out.println("Main feed passed verification in " + (System.currentTimeMillis() - start)+"ms");
 
-		if(!CryptoUtil.verifySignature(updateFeedResponse.get().body().readAllBytes(), updateSignatureResponse.get().body().readAllBytes(), CryptoUtil.getLivePublicKey(), "SHA256withRSA"))
+		if(!CryptoUtil.verifySignature(updateFeedResponse.get().body(), updateSignatureResponse.get().body(), CryptoUtil.getLivePublicKey(), "SHA256withRSA"))
 		{
 			System.out.println("Update feed failed verification");
 		}

@@ -274,14 +274,14 @@ public class Util
 	/**
 	 * Sends an asynchronous HTTP GET request using the requested Methanol, returning the value as an InputStream
 	 */
-	public static CompletableFuture<HttpResponse<InputStream>> getUrlAsync(Methanol httpClient, String raw_url) throws URISyntaxException
+	public static CompletableFuture<HttpResponse<byte[]>> getUrlAsync(Methanol httpClient, String raw_url) throws URISyntaxException
 	{
 		HttpRequest httpRequest = HttpRequest.newBuilder(new URI(raw_url))
 				.setHeader("User-Agent", Launcher.httpClientUserAgent)
 				.GET()
 				.build();
 
-		return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
+		return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofByteArray());
 	}
 
 	static final ProgressTracker progressTracker = ProgressTracker.newBuilder()

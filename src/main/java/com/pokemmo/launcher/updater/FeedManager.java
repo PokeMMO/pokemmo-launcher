@@ -1,9 +1,9 @@
 package com.pokemmo.launcher.updater;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.StringReader;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,52 +52,43 @@ public class FeedManager
 			try
 			{
 				System.out.println("Loading feed from " + mirror);
-				CompletableFuture<HttpResponse<InputStream>> mainFeedResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + channel.urlComponent() + "/current/feeds/main_feed.txt");
-				CompletableFuture<HttpResponse<InputStream>> signatureResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + channel.urlComponent() + "/current/feeds/main_feed.sig256");
-				CompletableFuture<HttpResponse<InputStream>> updateFeedResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + channel.urlComponent() + "/current/feeds/update_feed.txt");
-				CompletableFuture<HttpResponse<InputStream>> updateSignatureResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + channel.urlComponent() + "/current/feeds/update_feed.sig256");
+				CompletableFuture<HttpResponse<byte[]>> mainFeedResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + channel.urlComponent() + "/current/feeds/main_feed.txt");
+				CompletableFuture<HttpResponse<byte[]>> mainFeedSigResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + channel.urlComponent() + "/current/feeds/main_feed.sig256");
+				CompletableFuture<HttpResponse<byte[]>> updateFeedResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + channel.urlComponent() + "/current/feeds/update_feed.txt");
+				CompletableFuture<HttpResponse<byte[]>> updateFeedSigResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + channel.urlComponent() + "/current/feeds/update_feed.sig256");
 
 				// Using CompleteableFuture#allOf#join will eagerly terminate this mirror's processing if one of the URLs throws some kind of exception
-				CompletableFuture.allOf(mainFeedResponse, signatureResponse, updateFeedResponse, updateSignatureResponse)
+				CompletableFuture.allOf(mainFeedResponse, mainFeedSigResponse, updateFeedResponse, updateFeedSigResponse)
 						.exceptionally(error ->
 						{
 							mainFrame.showInfo("status.networking.feed_load_failed_validation", mirror, "INVALID_001");
 							return null;
 						}).join();
 
-				byte[] mainFeedRaw, mainFeedSigRaw, updateFeedRaw, updateFeedSigRaw;
+				byte[] mainFeedRaw = mainFeedResponse.get().body();
+				byte[] mainFeedSigRaw = mainFeedSigResponse.get().body();
+				byte[] updateFeedRaw = updateFeedResponse.get().body();
+				byte[] updateFeedSigRaw = updateFeedSigResponse.get().body();
 
-				try(InputStream mainFeedIs = mainFeedResponse.get().body() ; InputStream mainFeedSigIs = signatureResponse.get().body())
+				if(!CryptoUtil.verifySignature(mainFeedRaw, mainFeedSigRaw, pub_key, sig_format))
 				{
-					mainFeedRaw = mainFeedIs.readAllBytes();
-					mainFeedSigRaw = mainFeedSigIs.readAllBytes();
-
-					if(!CryptoUtil.verifySignature(mainFeedRaw, mainFeedSigRaw, pub_key, sig_format))
-					{
-						System.out.println("Main feed failed verification");
-						mainFrame.showInfo(Config.getString("status.networking.feed_load_failed_alt", mirror));
-						continue;
-					}
+					System.out.println("Main feed failed verification");
+					mainFrame.showInfo(Config.getString("status.networking.feed_load_failed_alt", mirror));
+					continue;
 				}
 
-				try(InputStream updateFeedIs = updateFeedResponse.get().body() ; InputStream updateFeedSigIs = updateSignatureResponse.get().body())
+				if(!CryptoUtil.verifySignature(updateFeedRaw, updateFeedSigRaw, pub_key, sig_format))
 				{
-					updateFeedRaw = updateFeedIs.readAllBytes();
-					updateFeedSigRaw = updateFeedSigIs.readAllBytes();
-
-					if(!CryptoUtil.verifySignature(updateFeedRaw, updateFeedSigRaw, pub_key, sig_format))
-					{
-						System.out.println("Update feed failed verification");
-						mainFrame.showInfo(Config.getString("status.networking.feed_load_failed_alt", mirror));
-						continue;
-					}
+					System.out.println("Update feed failed verification");
+					mainFrame.showInfo(Config.getString("status.networking.feed_load_failed_alt", mirror));
+					continue;
 				}
 
 				// If sig validity passes, move on to xml parsing / updates / min_revision checks
 
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 				DocumentBuilder db = dbf.newDocumentBuilder();
-				InputSource is = new InputSource(new StringReader(new String(mainFeedRaw)));
+				InputSource is = new InputSource(new StringReader(new String(mainFeedRaw, StandardCharsets.UTF_8)));
 				Document doc = db.parse(is);
 
 				Element main_feed = (Element) doc.getElementsByTagName("main_feed").item(0);
@@ -110,7 +101,7 @@ public class FeedManager
 				File current_directory = new File(".");
 				dbf = DocumentBuilderFactory.newInstance();
 				db = dbf.newDocumentBuilder();
-				is = new InputSource(new StringReader(new String(updateFeedRaw)));
+				is = new InputSource(new StringReader(new String(updateFeedRaw, StandardCharsets.UTF_8)));
 				doc = db.parse(is);
 
 				Element update_feed = (Element) doc.getElementsByTagName("update_feed").item(0);
