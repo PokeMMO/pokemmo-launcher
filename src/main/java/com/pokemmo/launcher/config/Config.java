@@ -34,8 +34,6 @@ public class Config
 	public static PokeMMOLocale ACTIVE_LOCALE = PokeMMOLocale.getDefaultLocale();
 	private static ResourceBundle STRINGS = ACTIVE_LOCALE.getStrings();
 
-	public static boolean AES_INTRINSICS_WORKAROUND_ENABLED = true;
-
 	private Config()
 	{
 	}
@@ -78,8 +76,6 @@ public class Config
 			ACTIVE_LOCALE = PokeMMOLocale.getFromString(props.getProperty("launcher_locale"));
 
 			UPDATE_CHANNEL = UpdateChannel.valueOf(props.getProperty("update_channel"));
-
-			AES_INTRINSICS_WORKAROUND_ENABLED = Boolean.parseBoolean(props.getProperty("networking_corruption_workaround", "true"));
 		}
 		catch(Exception e)
 		{
@@ -96,7 +92,6 @@ public class Config
 		props.put("update_channel", UPDATE_CHANNEL.toString());
 		props.put("max_mem_hard", Short.toString(HARD_MAX_MEMORY_MB));
 		props.put("launcher_locale", ACTIVE_LOCALE.getLangTag());
-		props.put("networking_corruption_workaround", Boolean.toString(AES_INTRINSICS_WORKAROUND_ENABLED));
 
 		File config_dir = new File(getConfigHome());
 		if(config_dir.exists() || config_dir.mkdir())

@@ -158,19 +158,6 @@ public class MainFrame extends JFrame implements ActionListener
 				config_panel.add(memoryMaxLabel);
 				config_panel.add(memoryMaxSpinner);
 
-				LocaleAwareLabel aesWorkaroundLabel = new LocaleAwareLabel("config.title.networking_corruption_workaround");
-				LocaleAwareCheckbox aesWorkaroundCb = new LocaleAwareCheckbox();
-				aesWorkaroundCb.setSelected(Config.AES_INTRINSICS_WORKAROUND_ENABLED);
-				aesWorkaroundCb.addActionListener((event) -> {
-					Config.AES_INTRINSICS_WORKAROUND_ENABLED = aesWorkaroundCb.isSelected();
-					Config.save();
-				});
-				aesWorkaroundCb.setEnabled(false);
-				aesWorkaroundCb.setToolTipKey("config.networking_corruption_workaround.tooltip");
-
-				config_panel.add(aesWorkaroundLabel);
-				config_panel.add(aesWorkaroundCb);
-
 				LocaleAwareButton openClientFolder = new LocaleAwareButton("config.title.open_client_folder");
 				openClientFolder.addActionListener((event) -> Util.open(parent.getPokemmoDir()));
 
