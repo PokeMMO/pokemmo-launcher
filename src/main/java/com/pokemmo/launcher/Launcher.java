@@ -25,6 +25,7 @@ import java.util.concurrent.Phaser;
 import com.pokemmo.launcher.config.Config;
 import com.pokemmo.launcher.enums.Arch;
 import com.pokemmo.launcher.enums.OS;
+import com.pokemmo.launcher.enums.PokeMMOLocale;
 import com.pokemmo.launcher.enums.UpdateChannel;
 import com.pokemmo.launcher.ui.MainFrame;
 import com.pokemmo.launcher.updater.FeedManager;
@@ -720,6 +721,16 @@ public class Launcher
 				{
 					UpdateChannel channel = UpdateChannel.valueOf(queue.poll());
 					Config.UPDATE_CHANNEL = channel;
+				}
+				continue;
+			}
+
+			if(arg.equals("--local") || arg.equals("--locale"))
+			{
+				if(!queue.isEmpty())
+				{
+					PokeMMOLocale locale = PokeMMOLocale.getFromString(queue.poll());
+					Config.changeLocale(locale);
 				}
 				continue;
 			}

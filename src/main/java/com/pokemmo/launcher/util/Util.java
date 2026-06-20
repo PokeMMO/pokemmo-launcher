@@ -347,4 +347,9 @@ public class Util
 			return false;
 		}
 	}
+
+	public static boolean startsWithIgnoreCase(String src, String what)
+	{
+		return src.regionMatches(true, 0, what, 0, what.length());
+	}
 }

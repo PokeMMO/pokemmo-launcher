@@ -6,24 +6,26 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
+import com.pokemmo.launcher.util.Util;
+
 /**
  * @author Kyu
  */
 public enum PokeMMOLocale
 {
-	en("English", "en", true),
-	fr("Français", "fr", true),
-	es("Español", "es", true),
-	de("Deutsche", "de", true),
-	it("Italiano", "it", true),
-	pt_br("Português (Brasileiro)", "pt-BR", true),
-	ko("한국어", "ko", true),
-	ja("日本語", "ja", true),
-	zh("中国人", "zh", true),
-	zh_tw("中國人", "zh-TW", true),
-	fil("Filipino", "fil", true),
-	ru("Русские", "ru", false),
-	pl("Polski", "pl", false);
+	EN("English", "en", true),
+	FR("Français", "fr", true),
+	ES("Español", "es", true),
+	DE("Deutsche", "de", true),
+	IT("Italiano", "it", true),
+	PT_BR("Português (Brasileiro)", "pt-BR", true),
+	KO("한국어", "ko", true),
+	JA("日本語", "ja", true),
+	ZH("中国人", "zh", true),
+	ZH_HANT("中國人", "zh-Hant", true),
+	FIL("Filipino", "fil", true),
+	RU("Русские", "ru", false),
+	PL("Polski", "pl", false);
 
 	private final String display_name, lang_tag;
 	private final boolean language_is_selectable;
@@ -57,6 +59,13 @@ public enum PokeMMOLocale
 		return lang_tag;
 	}
 
+	public String getLangTagShort()
+	{
+		if(lang_tag.indexOf('-') < 0)
+			return lang_tag;
+		return lang_tag.substring(0, lang_tag.indexOf('-'));
+	}
+
 	public boolean isEnabled()
 	{
 		return language_is_selectable;
@@ -64,45 +73,64 @@ public enum PokeMMOLocale
 
 	public ResourceBundle getStrings()
 	{
-		return RESOURCES.getOrDefault(this, RESOURCES.get(PokeMMOLocale.en));
-	}
-
-	public static PokeMMOLocale getFromString(String value)
-	{
-		for(var lang : ENABLED_LANGUAGES)
-		{
-			String target_tag = lang.getLangTag();
-			if(value.equalsIgnoreCase(target_tag))
-			{
-				return lang;
-			}
-		}
-
-		return PokeMMOLocale.en;
+		return RESOURCES.getOrDefault(this, RESOURCES.get(PokeMMOLocale.EN));
 	}
 
 	public static PokeMMOLocale getFromLocale(Locale locale)
 	{
-		// Check once for a precise match (e.g. ZH-TW)
-		for(var lang : ENABLED_LANGUAGES)
+		String lang = locale.getLanguage();
+
+		if(!locale.getCountry().isEmpty())
 		{
-			if(locale.toLanguageTag().equals(lang.getLangTag()))
+			lang += "-" + locale.getCountry();
+		}
+
+		//This happens for things like zh_CN_#Hant
+		if(locale.getScript().equalsIgnoreCase("hant"))
+		{
+			lang = "zh-Hant";
+		}
+
+		if(Util.startsWithIgnoreCase(lang, "zh-TW") || Util.startsWithIgnoreCase(lang, "zh-HK"))
+		{
+			lang = "zh-Hant";
+		}
+
+		//Multiple, remove last. This happens for things like zh_CN_#Hans
+		while(lang.indexOf('-') != lang.lastIndexOf('-'))
+		{
+			lang = lang.substring(0, lang.lastIndexOf('-'));
+		}
+
+		return getFromString(lang);
+	}
+
+	public static PokeMMOLocale getFromString(String lang)
+	{
+		PokeMMOLocale partial = null;
+		for(PokeMMOLocale pokeMMOLocale : values())
+		{
+			//Prefer a perfect match
+			if(pokeMMOLocale.getLangTag().equalsIgnoreCase(lang))
 			{
-				return lang;
+				return pokeMMOLocale;
+			}
+
+			if(Util.startsWithIgnoreCase(lang, pokeMMOLocale.getLangTagShort()))
+			{
+				//Pick the less specific, eg, pt-PT should pick pt over pt-BR
+				if(partial == null || pokeMMOLocale.getLangTag().length() < partial.getLangTag().length())
+				{
+					partial = pokeMMOLocale;
+				}
 			}
 		}
 
-		// Test for an ISO-639-1 match
-		for(var lang : ENABLED_LANGUAGES)
-		{
-			if(locale.getLanguage().equals(lang.getLangTag()))
-			{
-				return lang;
-			}
-		}
+		if(partial != null)
+			return partial;
 
 		// Default
-		return PokeMMOLocale.en;
+		return PokeMMOLocale.EN;
 	}
 
 	public static PokeMMOLocale getDefaultLocale()
