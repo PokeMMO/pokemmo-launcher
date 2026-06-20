@@ -1,6 +1,5 @@
 package com.pokemmo.launcher;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -34,8 +33,6 @@ import com.pokemmo.launcher.updater.FeedManager;
 import com.pokemmo.launcher.updater.UpdateFile;
 import com.pokemmo.launcher.updater.UpdaterSwingWorker;
 import com.pokemmo.launcher.util.Util;
-
-import javax.swing.*;
 
 /**
  * PokeMMO Launcher / Updater / Installer
@@ -124,7 +121,7 @@ public class Launcher
 		}
 	}
 
-	private void run()
+	private void run(boolean repair)
 	{
 		String fileSeparator = File.separator;
 
@@ -224,7 +221,7 @@ public class Launcher
 			}
 
 			// If our declared revision is invalid, repair
-			new UpdaterSwingWorker(this, mainFrame, (revision <= 0 || (FeedManager.MIN_REVISION > 0 && revision >= FeedManager.MIN_REVISION)), false).execute();
+			new UpdaterSwingWorker(this, mainFrame, repair || (revision <= 0 || (FeedManager.MIN_REVISION > 0 && revision >= FeedManager.MIN_REVISION)), false).execute();
 		}
 		else
 		{
@@ -734,9 +731,9 @@ public class Launcher
 		Config.load();
 
 		Runtime.getRuntime().addShutdownHook(new Thread(Config::save));
-		UIManager.getLookAndFeelDefaults().put("defaultFont", new Font(Font.SANS_SERIF, Font.PLAIN, 14));
 
 		String httpAuthPassword = "";
+		boolean repair = false;
 
 		ArrayDeque<String> queue = new ArrayDeque<>(Arrays.asList(args));
 		while(!queue.isEmpty())
@@ -758,6 +755,35 @@ public class Launcher
 				continue;
 			}
 
+			//Legacy
+			if(arg.startsWith("-auth_password:"))
+			{
+				httpAuthPassword = arg.split(":", 2)[1];
+			}
+
+			//Legacy
+			if(arg.startsWith("-updater_feeds"))
+			{
+				try
+				{
+					String temp = arg.split(":", 2)[1];
+					if(!temp.trim().isEmpty())
+					{
+						String[] updater_feeds = temp.split(",");
+						for(String s :  updater_feeds)
+						{
+							if(s.contains("testserver2"))
+								Config.UPDATE_CHANNEL = UpdateChannel.testserver2;
+							else if(s.contains("testserver"))
+								Config.UPDATE_CHANNEL = UpdateChannel.testserver;
+						}
+					}
+				}
+				catch(Exception e)
+				{
+				}
+			}
+
 			if(arg.equals("--channel"))
 			{
 				if(!queue.isEmpty())
@@ -775,6 +801,19 @@ public class Launcher
 					PokeMMOLocale locale = PokeMMOLocale.getFromString(queue.poll());
 					Config.changeLocale(locale);
 				}
+				continue;
+			}
+
+			//Legacy
+			if(arg.equals("-pts"))
+			{
+				Config.UPDATE_CHANNEL = UpdateChannel.pts;
+				continue;
+			}
+
+			if(arg.equals("-repair:true") || arg.equals("--repair"))
+			{
+				repair = true;
 				continue;
 			}
 		}
@@ -798,7 +837,6 @@ public class Launcher
 
 		httpClient = builder.build();
 
-
-		new Launcher().run();
+		new Launcher().run(repair);
 	}
 }

@@ -55,6 +55,8 @@ public class MainFrame extends JFrame implements ActionListener
 		this.parent = parent;
 		this.executorService = Executors.newFixedThreadPool(1);
 
+		UIManager.getLookAndFeelDefaults().put("defaultFont", new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		status = new LocaleAwareLabel("main.loading");
