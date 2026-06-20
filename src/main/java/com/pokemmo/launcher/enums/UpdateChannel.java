@@ -56,6 +56,8 @@ public enum UpdateChannel
 			default -> new String[]{
 					"https://dl.pokemmo.com",
 					"https://files.pokemmo.com",
+					"https://dl.pokemmo.eu",
+					"https://files.pokemmo.eu",
 					"https://dl.pokemmo.download"
 			};
 		};
