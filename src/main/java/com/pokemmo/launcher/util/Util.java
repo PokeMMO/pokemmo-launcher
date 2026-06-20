@@ -1,4 +1,4 @@
-package com.pokeemu.unix.util;
+package com.pokemmo.launcher.util;
 
 import java.awt.*;
 import java.io.BufferedInputStream;
@@ -25,9 +25,9 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
-import com.pokeemu.unix.UnixInstaller;
-import com.pokeemu.unix.config.Config;
-import com.pokeemu.unix.ui.MainFrame;
+import com.pokemmo.launcher.Launcher;
+import com.pokemmo.launcher.config.Config;
+import com.pokemmo.launcher.ui.MainFrame;
 
 /**
  * @author Desu
@@ -267,7 +267,7 @@ public class Util
 	public static HttpResponse<InputStream> getUrl(HttpClient httpClient, String raw_url) throws URISyntaxException, IOException, InterruptedException
 	{
 		HttpRequest httpRequest = HttpRequest.newBuilder(new URI(raw_url))
-				.setHeader("User-Agent", UnixInstaller.httpClientUserAgent)
+				.setHeader("User-Agent", Launcher.httpClientUserAgent)
 				.GET()
 				.build();
 
@@ -280,7 +280,7 @@ public class Util
 	public static CompletableFuture<HttpResponse<InputStream>> getUrlAsync(HttpClient httpClient, String raw_url) throws URISyntaxException
 	{
 		HttpRequest httpRequest = HttpRequest.newBuilder(new URI(raw_url))
-				.setHeader("User-Agent", UnixInstaller.httpClientUserAgent)
+				.setHeader("User-Agent", Launcher.httpClientUserAgent)
 				.GET()
 				.build();
 
@@ -294,7 +294,7 @@ public class Util
 	public static HttpResponse<InputStream> downloadFile(HttpClient httpClient, String raw_url) throws URISyntaxException, IOException, InterruptedException
 	{
 		HttpRequest httpRequest = HttpRequest.newBuilder(new URI(raw_url))
-				.setHeader("User-Agent", UnixInstaller.httpClientUserAgent)
+				.setHeader("User-Agent", Launcher.httpClientUserAgent)
 				.setHeader("Accept-Encoding", "gzip, deflate")
 				.GET()
 				.build();

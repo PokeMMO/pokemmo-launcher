@@ -21,30 +21,8 @@ java {
 }
 
 project.ext.appName = "PokeMMO"
-project.ext.mainClassName = "com.pokeemu.unix.UnixInstaller"
-project.ext.mainJar = "unix-installer.jar"
-
-// creates a slim JDK runtime for distribution
-task createRuntime(type: Exec) {
-    doFirst() {
-        project.delete("${buildDir}/runtime")
-    }
-
-    String runtimePath = "${buildDir}/runtime"
-    String jlinkPath = "$System.env.JRE_TARGET" + "/bin/jlink"
-
-    workingDir project.projectDir
-    commandLine = [
-            jlinkPath,
-            '--add-modules', 'java.se,java.base,java.desktop,jdk.unsupported,jdk.crypto.ec',
-            '--strip-debug',
-            '--no-header-files',
-            '--no-man-pages',
-            "--vm=server",
-            "--compress=2",
-            '--output', runtimePath
-    ]
-}
+project.ext.mainClassName = "com.pokemmo.launcher.Launcher"
+project.ext.mainJar = "launcher.jar"
 
 jar {
     archiveFileName = project.mainJar

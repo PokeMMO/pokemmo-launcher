@@ -1,4 +1,4 @@
-package com.pokeemu.unix.util;
+package com.pokemmo.launcher.util;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;

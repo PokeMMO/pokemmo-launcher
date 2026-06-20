@@ -1,4 +1,4 @@
-package com.pokeemu.unix.ui;
+package com.pokemmo.launcher.ui;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -1,4 +1,4 @@
-package com.pokeemu.unix.util;
+package com.pokemmo.launcher.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -12,8 +12,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
-import com.pokeemu.unix.UnixInstaller;
-import com.pokeemu.unix.config.Config;
+import com.pokemmo.launcher.Launcher;
+import com.pokemmo.launcher.config.Config;
 
 /**
  * @author Kyu
@@ -29,10 +29,10 @@ public class HttpClientTest
 	{
 		long start = System.currentTimeMillis();
 
-		CompletableFuture<HttpResponse<InputStream>> mainFeedResponse = Util.getUrlAsync(UnixInstaller.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.txt");
-		CompletableFuture<HttpResponse<InputStream>> signatureResponse = Util.getUrlAsync(UnixInstaller.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.sig256");
-		CompletableFuture<HttpResponse<InputStream>> updateFeedResponse = Util.getUrlAsync(UnixInstaller.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.txt");
-		CompletableFuture<HttpResponse<InputStream>> updateSignatureResponse = Util.getUrlAsync(UnixInstaller.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.sig256");
+		CompletableFuture<HttpResponse<InputStream>> mainFeedResponse = Util.getUrlAsync(Launcher.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.txt");
+		CompletableFuture<HttpResponse<InputStream>> signatureResponse = Util.getUrlAsync(Launcher.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.sig256");
+		CompletableFuture<HttpResponse<InputStream>> updateFeedResponse = Util.getUrlAsync(Launcher.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.txt");
+		CompletableFuture<HttpResponse<InputStream>> updateSignatureResponse = Util.getUrlAsync(Launcher.httpClient, "https://dl.pokemmo.com/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.sig256");
 
 		System.out.println("Waiting on CompleteableFuture#allOf.." + (System.currentTimeMillis() - start)+"ms");
 		// Using CompleteableFuture#allOf#join will eagerly terminate this mirror's processing if one of the URLs throws some kind of exception
@@ -65,7 +65,7 @@ public class HttpClientTest
 	{
 		try
 		{
-			HttpResponse<InputStream> downloadResponse = Util.downloadFile(UnixInstaller.httpClient, "https://dl.pokemmo.com/live/current/feeds/main_feed.txt");
+			HttpResponse<InputStream> downloadResponse = Util.downloadFile(Launcher.httpClient, "https://dl.pokemmo.com/live/current/feeds/main_feed.txt");
 
 			String encoding = downloadResponse.headers().firstValue("Content-Encoding").orElse("");
 

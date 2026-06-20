@@ -1,6 +1,6 @@
-package com.pokeemu.unix.ui;
+package com.pokemmo.launcher.ui;
 
-import com.pokeemu.unix.config.Config;
+import com.pokemmo.launcher.config.Config;
 
 import javax.swing.*;
 

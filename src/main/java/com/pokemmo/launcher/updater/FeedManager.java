@@ -1,4 +1,4 @@
-package com.pokeemu.unix.updater;
+package com.pokemmo.launcher.updater;
 
 import java.io.File;
 import java.io.InputStream;
@@ -8,10 +8,6 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -19,11 +15,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import com.pokeemu.unix.UnixInstaller;
-import com.pokeemu.unix.config.Config;
-import com.pokeemu.unix.ui.MainFrame;
-import com.pokeemu.unix.util.CryptoUtil;
-import com.pokeemu.unix.util.Util;
+import com.pokemmo.launcher.Launcher;
+import com.pokemmo.launcher.config.Config;
+import com.pokemmo.launcher.ui.MainFrame;
+import com.pokemmo.launcher.util.CryptoUtil;
+import com.pokemmo.launcher.util.Util;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -59,10 +55,10 @@ public class FeedManager
 		{
 			try
 			{
-				CompletableFuture<HttpResponse<InputStream>> mainFeedResponse = Util.getUrlAsync(UnixInstaller.httpClient, mirror + "/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.txt");
-				CompletableFuture<HttpResponse<InputStream>> signatureResponse = Util.getUrlAsync(UnixInstaller.httpClient, mirror + "/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.sig256");
-				CompletableFuture<HttpResponse<InputStream>> updateFeedResponse = Util.getUrlAsync(UnixInstaller.httpClient, mirror + "/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.txt");
-				CompletableFuture<HttpResponse<InputStream>> updateSignatureResponse = Util.getUrlAsync(UnixInstaller.httpClient, mirror + "/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.sig256");
+				CompletableFuture<HttpResponse<InputStream>> mainFeedResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.txt");
+				CompletableFuture<HttpResponse<InputStream>> signatureResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/main_feed.sig256");
+				CompletableFuture<HttpResponse<InputStream>> updateFeedResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.txt");
+				CompletableFuture<HttpResponse<InputStream>> updateSignatureResponse = Util.getUrlAsync(Launcher.httpClient, mirror + "/" + Config.UPDATE_CHANNEL.name() + "/current/feeds/update_feed.sig256");
 
 				// Using CompleteableFuture#allOf#join will eagerly terminate this mirror's processing if one of the URLs throws some kind of exception
 				CompletableFuture.allOf(mainFeedResponse, signatureResponse, updateFeedResponse, updateSignatureResponse)
@@ -176,7 +172,7 @@ public class FeedManager
 
 		if(!SUCCESSFUL)
 		{
-			mainFrame.showErrorWithStacktrace(Config.getString("status.networking.feed_load_failed"), Config.getString("status.title.fatal_error"), failures.toArray(new Throwable[0]), () -> System.exit(UnixInstaller.EXIT_CODE_NETWORK_FAILURE));
+			mainFrame.showErrorWithStacktrace(Config.getString("status.networking.feed_load_failed"), Config.getString("status.title.fatal_error"), failures.toArray(new Throwable[0]), () -> System.exit(Launcher.EXIT_CODE_NETWORK_FAILURE));
 		}
 	}
 

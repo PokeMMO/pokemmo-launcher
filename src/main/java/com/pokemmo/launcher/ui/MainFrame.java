@@ -1,4 +1,4 @@
-package com.pokeemu.unix.ui;
+package com.pokemmo.launcher.ui;
 
 
 import java.awt.*;
@@ -9,12 +9,12 @@ import java.awt.event.WindowListener;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.pokeemu.unix.UnixInstaller;
-import com.pokeemu.unix.config.Config;
-import com.pokeemu.unix.enums.PokeMMOLocale;
-import com.pokeemu.unix.enums.UpdateChannel;
-import com.pokeemu.unix.updater.UpdaterSwingWorker;
-import com.pokeemu.unix.util.Util;
+import com.pokemmo.launcher.Launcher;
+import com.pokemmo.launcher.config.Config;
+import com.pokemmo.launcher.enums.PokeMMOLocale;
+import com.pokemmo.launcher.enums.UpdateChannel;
+import com.pokemmo.launcher.updater.UpdaterSwingWorker;
+import com.pokemmo.launcher.util.Util;
 
 import javax.swing.*;
 import javax.swing.text.DefaultCaret;
@@ -26,7 +26,7 @@ public class MainFrame extends JFrame implements ActionListener
 {
 	private static final Font FONT_MONOSPACED = new Font(Font.MONOSPACED, Font.PLAIN, 14);
 
-	private final UnixInstaller parent;
+	private final Launcher parent;
 
 	protected final LocaleAwareLabel status;
 	protected final JLabel dlSpeed;
@@ -51,7 +51,7 @@ public class MainFrame extends JFrame implements ActionListener
 		return instance;
 	}
 
-	public MainFrame(UnixInstaller parent)
+	public MainFrame(Launcher parent)
 	{
 		instance = this;
 
@@ -254,7 +254,7 @@ public class MainFrame extends JFrame implements ActionListener
 		setLocationRelativeTo(null);
 		setTitle(Config.getString("main.title"));
 		setResizable(false);
-		setVisible(!UnixInstaller.QUICK_AUTOSTART);
+		setVisible(!Launcher.QUICK_AUTOSTART);
 	}
 
 	@Override
@@ -262,7 +262,7 @@ public class MainFrame extends JFrame implements ActionListener
 	{
 		if("exit".equals(e.getActionCommand()))
 		{
-			System.exit(UnixInstaller.EXIT_CODE_SUCCESS);
+			System.exit(Launcher.EXIT_CODE_SUCCESS);
 		}
 	}
 
@@ -427,7 +427,7 @@ public class MainFrame extends JFrame implements ActionListener
 	{
 		launchGame.setEnabled(true);
 
-		if(UnixInstaller.QUICK_AUTOSTART)
+		if(Launcher.QUICK_AUTOSTART)
 		{
 			parent.launchGame();
 		}

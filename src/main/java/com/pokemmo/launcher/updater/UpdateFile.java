@@ -1,4 +1,4 @@
-package com.pokeemu.unix.updater;
+package com.pokemmo.launcher.updater;
 
 /**
  * @author Desu

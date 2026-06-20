@@ -1,8 +1,8 @@
-package com.pokeemu.unix.updater;
+package com.pokemmo.launcher.updater;
 
-import com.pokeemu.unix.UnixInstaller;
-import com.pokeemu.unix.config.Config;
-import com.pokeemu.unix.ui.MainFrame;
+import com.pokemmo.launcher.Launcher;
+import com.pokemmo.launcher.config.Config;
+import com.pokemmo.launcher.ui.MainFrame;
 
 import javax.swing.*;
 
@@ -19,12 +19,12 @@ import java.util.List;
  */
 public class UpdaterSwingWorker extends SwingWorker<Void, Void>
 {
-	private final UnixInstaller parent;
+	private final Launcher parent;
 	private final MainFrame mainFrame;
 	private final boolean repair, clean;
 	private boolean success = true;
 
-	public UpdaterSwingWorker(UnixInstaller parent, MainFrame mainFrame, boolean repair, boolean clean)
+	public UpdaterSwingWorker(Launcher parent, MainFrame mainFrame, boolean repair, boolean clean)
 	{
 		this.parent = parent;
 		this.mainFrame = mainFrame;
@@ -79,7 +79,7 @@ public class UpdaterSwingWorker extends SwingWorker<Void, Void>
 				SwingUtilities.invokeLater(mainFrame::setCanStart);
 			}
 			else
-				SwingUtilities.invokeLater(() -> mainFrame.showErrorWithStacktrace(Config.getString("error.dir_not_accessible", parent.getPokemmoDir().getAbsolutePath(), "REPAIR_FAILED"), "", failed.toArray(new Throwable[0]), () -> System.exit(UnixInstaller.EXIT_CODE_IO_FAILURE)));
+				SwingUtilities.invokeLater(() -> mainFrame.showErrorWithStacktrace(Config.getString("error.dir_not_accessible", parent.getPokemmoDir().getAbsolutePath(), "REPAIR_FAILED"), "", failed.toArray(new Throwable[0]), () -> System.exit(Launcher.EXIT_CODE_IO_FAILURE)));
 		}
 
 		return null;

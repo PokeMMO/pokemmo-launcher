@@ -1,4 +1,4 @@
-package com.pokeemu.unix.config;
+package com.pokemmo.launcher.config;
 
 import java.io.File;
 import java.io.FileReader;
@@ -11,10 +11,10 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
-import com.pokeemu.unix.UnixInstaller;
-import com.pokeemu.unix.enums.PokeMMOLocale;
-import com.pokeemu.unix.enums.UpdateChannel;
-import com.pokeemu.unix.ui.LocaleAwareElementManager;
+import com.pokemmo.launcher.Launcher;
+import com.pokemmo.launcher.enums.PokeMMOLocale;
+import com.pokemmo.launcher.enums.UpdateChannel;
+import com.pokemmo.launcher.ui.LocaleAwareElementManager;
 
 /**
  * @author Kyu
@@ -104,7 +104,7 @@ public class Config
 			File config_file = new File(getConfigHome() + "/pokemmo-installer.properties");
 			try
 			{
-				props.store(new FileWriter(config_file, StandardCharsets.UTF_8), "PokeMMO Unix Installer v" + UnixInstaller.INSTALLER_VERSION + " Properties");
+				props.store(new FileWriter(config_file, StandardCharsets.UTF_8), "PokeMMO Unix Installer v" + Launcher.INSTALLER_VERSION + " Properties");
 			}
 			catch(IOException e)
 			{

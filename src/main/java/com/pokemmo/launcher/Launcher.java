@@ -1,4 +1,4 @@
-package com.pokeemu.unix;
+package com.pokemmo.launcher;
 
 import java.awt.*;
 import java.io.File;
@@ -19,17 +19,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Phaser;
 
-import com.pokeemu.unix.config.Config;
-import com.pokeemu.unix.ui.MainFrame;
-import com.pokeemu.unix.updater.FeedManager;
-import com.pokeemu.unix.updater.UpdateFile;
-import com.pokeemu.unix.updater.UpdaterSwingWorker;
-import com.pokeemu.unix.util.Util;
+import com.pokemmo.launcher.config.Config;
+import com.pokemmo.launcher.ui.MainFrame;
+import com.pokemmo.launcher.updater.FeedManager;
+import com.pokemmo.launcher.updater.UpdateFile;
+import com.pokemmo.launcher.updater.UpdaterSwingWorker;
+import com.pokemmo.launcher.util.Util;
 
 import javax.swing.*;
 
 /**
- * PokeMMO Unix Installer
+ * PokeMMO Launcher / Updater / Installer
  * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ import javax.swing.*;
  * @author Kyu <kyu@pokemmo.com>
  * @author Desu <desu@pokemmo.com>
  */
-public class UnixInstaller
+public class Launcher
 {
 	public static final int INSTALLER_VERSION = 21;
 
@@ -108,15 +108,15 @@ public class UnixInstaller
 
 		if(snapcraft != null)
 		{
-			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; UnixInstaller v"+ UnixInstaller.INSTALLER_VERSION+") (Snapcraft)";
+			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; UnixInstaller v"+ Launcher.INSTALLER_VERSION+") (Snapcraft)";
 		}
 		else if (flatpak != null)
 		{
-			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; UnixInstaller v"+ UnixInstaller.INSTALLER_VERSION+") (Flatpak)";
+			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; UnixInstaller v"+ Launcher.INSTALLER_VERSION+") (Flatpak)";
 		}
 		else
 		{
-			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; UnixInstaller v"+ UnixInstaller.INSTALLER_VERSION+")";
+			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; UnixInstaller v"+ Launcher.INSTALLER_VERSION+")";
 		}
 	}
 
@@ -243,7 +243,7 @@ public class UnixInstaller
 		}
 		catch(InterruptedException e)
 		{
-			System.exit(UnixInstaller.EXIT_CODE_UNK_FAILURE);
+			System.exit(Launcher.EXIT_CODE_UNK_FAILURE);
 		}
 	}
 
@@ -702,6 +702,6 @@ public class UnixInstaller
 			}
 		}
 
-		new UnixInstaller().run();
+		new Launcher().run();
 	}
 }

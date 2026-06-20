@@ -1,4 +1,4 @@
-package com.pokeemu.unix.enums;
+package com.pokemmo.launcher.enums;
 
 import java.util.HashMap;
 import java.util.Locale;
