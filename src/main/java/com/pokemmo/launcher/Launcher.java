@@ -372,20 +372,8 @@ public class Launcher
 
 		for(UpdateFile file : FeedManager.getFiles())
 		{
-			if(file.only_if_not_exists)
-			{
-				continue;
-			}
-
 			File f = getFile(file.name);
-
-			if(!f.exists())
-			{
-				invalidFiles.add(file);
-				continue;
-			}
-
-			if(!file.shouldDownload())
+			if(!file.shouldDownload(f))
 			{
 				continue;
 			}
@@ -433,16 +421,8 @@ public class Launcher
 
 		for(UpdateFile file : FeedManager.getFiles())
 		{
-			if(!file.shouldDownload())
-			{
-				continue;
-			}
-
-			String checksum_sha256 = file.sha256;
-
 			File f = getFile(file.name);
-
-			if(file.only_if_not_exists && f.exists())
+			if(!file.shouldDownload(f))
 			{
 				continue;
 			}
@@ -453,6 +433,7 @@ public class Launcher
 				return;
 			}
 
+			String checksum_sha256 = file.sha256;
 			String hash_sha256 = Util.calculateHash("SHA-256", f);
 
 			if(!checksum_sha256.equalsIgnoreCase(hash_sha256))
@@ -552,6 +533,9 @@ public class Launcher
 				disabledMirrors.add(mirror_index);
 				continue;
 			}
+
+			if(file.executable)
+				temporary_file.setExecutable(true, false);
 
 			File old_file = getFile(file.name);
 			if(old_file.isFile() && old_file.exists() && !old_file.delete())

@@ -117,7 +117,6 @@ public class FeedManager
 				doc = db.parse(is);
 
 				Element update_feed = (Element) doc.getElementsByTagName("update_feed").item(0);
-				boolean has_valid_file_entry = false;
 
 				NodeList filesNodeList = update_feed.getElementsByTagName("file");
 				for(int x = 0; x < filesNodeList.getLength(); x++)
@@ -127,25 +126,17 @@ public class FeedManager
 					{
 						Element file = (Element) fileT;
 						String sanitized = Util.sanitize(current_directory, file.getAttribute("name"));
+						int size = Integer.parseInt(file.getAttribute("size"));
 
-						if(sanitized != null && file.hasAttribute("sha256"))
+						if(sanitized != null && size > 0)
 						{
-							boolean only_if_not_exists = false;
-							if(file.hasAttribute("only_if_not_exists"))
-							{
-								try
-								{
-									only_if_not_exists = Boolean.parseBoolean(file.getAttribute("only_if_not_exists"));
-								}
-								catch(Exception e)
-								{
-									// Don't care
-								}
-							}
-
-							UpdateFile f = new UpdateFile(sanitized, file.getAttribute("sha256"), file.getAttribute("size"), only_if_not_exists);
+							UpdateFile f = new UpdateFile(sanitized, file.getAttribute("sha256"), size, Boolean.parseBoolean(file.getAttribute("only_if_not_exists")));
+							if(file.hasAttribute("os"))
+								f.os = file.getAttribute("os");
+							if(file.hasAttribute("arch"))
+								f.arch = file.getAttribute("arch");
+							f.executable = Boolean.parseBoolean(file.getAttribute("executable"));
 							files.add(f);
-							has_valid_file_entry = true;
 						}
 						else
 						{
@@ -155,8 +146,8 @@ public class FeedManager
 					}
 				}
 
-				//Make sure we have at least 1 normal file (options/jres don't count towards this check)
-				if(has_valid_file_entry)
+				//Make sure we have at least 1 normal file
+				if(!files.isEmpty())
 				{
 					SUCCESSFUL = true;
 					return;

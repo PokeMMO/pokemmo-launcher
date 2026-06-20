@@ -8,7 +8,8 @@ import java.util.stream.Stream;
 public enum UpdateChannel
 {
 	live(true),
-	pts(false);
+	pts(false),
+	testserver(false);
 
 	public static final UpdateChannel[] ENABLED_UPDATE_CHANNELS;
 
