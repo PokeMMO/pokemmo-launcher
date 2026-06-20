@@ -223,7 +223,8 @@ public class MainFrame extends JFrame implements ActionListener
 			launchGame = new LocaleAwareButton("main.launch");
 			launchGame.setEnabled(false);
 
-			bottom_panel.add(configLauncher, BorderLayout.WEST);
+			if(!Launcher.HIDE_CONFIG)
+				bottom_panel.add(configLauncher, BorderLayout.WEST);
 			bottom_panel.add(launchGame, BorderLayout.EAST);
 		}
 
