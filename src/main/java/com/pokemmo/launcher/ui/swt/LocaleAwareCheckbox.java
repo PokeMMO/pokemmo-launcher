@@ -26,6 +26,12 @@ public class LocaleAwareCheckbox extends Button implements LocaleAwareInterface
     }
 
     @Override
+    protected void checkSubclass()
+    {
+        // Allow subclassing of SWT Button (checkbox style)
+    }
+
+    @Override
     public void setTextKey(String key, Object... params)
     {
         // Not supported for checkboxes in the current design

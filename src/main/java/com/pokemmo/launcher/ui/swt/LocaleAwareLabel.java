@@ -26,6 +26,12 @@ public class LocaleAwareLabel extends Label implements LocaleAwareInterface
     }
 
     @Override
+    protected void checkSubclass()
+    {
+        // Allow subclassing of SWT Label
+    }
+
+    @Override
     public void setTextKey(String key, Object... params)
     {
         this.key = key;

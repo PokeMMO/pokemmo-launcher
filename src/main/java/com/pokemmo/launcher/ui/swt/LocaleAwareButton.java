@@ -30,6 +30,12 @@ public class LocaleAwareButton extends Button implements LocaleAwareInterface
     }
 
     @Override
+    protected void checkSubclass()
+    {
+        // Allow subclassing of SWT Button
+    }
+
+    @Override
     public void setTextKey(String key, Object... params)
     {
         this.key = key;

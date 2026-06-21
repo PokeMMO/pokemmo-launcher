@@ -29,6 +29,12 @@ public class LocaleAwareTextArea extends Text implements LocaleAwareInterface
     }
 
     @Override
+    protected void checkSubclass()
+    {
+        // Allow subclassing of SWT Text
+    }
+
+    @Override
     public void setTextKey(String key, Object... params)
     {
         // Default
