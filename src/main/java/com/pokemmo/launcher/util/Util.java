@@ -1,9 +1,6 @@
 package com.pokemmo.launcher.util;
 
-import java.awt.*;
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,6 +21,7 @@ import com.github.mizosoft.methanol.Methanol;
 import com.github.mizosoft.methanol.ProgressTracker;
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.config.Config;
+import com.pokemmo.launcher.enums.OS;
 import com.pokemmo.launcher.ui.MainFrame;
 
 /**
@@ -31,115 +29,40 @@ import com.pokemmo.launcher.ui.MainFrame;
  */
 public class Util
 {
-	private static final boolean desktopBrowseSupported, desktopOpenSupported;
-
-	static
-	{
-		desktopBrowseSupported = Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE);
-		desktopOpenSupported = Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN);
-	}
-
-	public static void open(String file)
-	{
-		open(new File(file));
-	}
-
 	public static void open(File file)
-	{
-		if(file == null)
-		{
-			throw new IllegalArgumentException("File may not be null");
-		}
-
-		new Thread(() ->
-		{
-			if(desktopOpenSupported)
-			{
-				try
-				{
-					Desktop.getDesktop().open(file);
-					return;
-				}
-				catch(IOException ex)
-				{
-					System.out.println("Failed to open Desktop#open " + file.getAbsolutePath());
-					ex.printStackTrace();
-				}
-			}
-
-			doXdgOpen(file.getAbsolutePath());
-
-		}).start();
-	}
-
-	public static void browse(String url)
-	{
-		if(url == null || url.isEmpty())
-		{
-			throw new IllegalArgumentException("Malformed URL " + url);
-		}
-
-		new Thread(() ->
-		{
-			if(desktopBrowseSupported)
-			{
-				try
-				{
-					Desktop.getDesktop().browse(new URI(url));
-					return;
-				}
-				catch(IOException | URISyntaxException ex)
-				{
-					System.out.println("Failed to open Desktop#browse " + url);
-					ex.printStackTrace();
-				}
-			}
-
-			doXdgOpen(url);
-
-		}).start();
-	}
-
-	private static void doXdgOpen(String url)
 	{
 		ProcessBuilder pb = new ProcessBuilder();
 		pb.inheritIO();
-		pb.command("xdg-open", url);
 
-		try
+		if(OS.get() == OS.MAC)
 		{
-			pb.start();
+			pb.command("open", "--", file.getAbsolutePath());
 		}
-		catch(IOException ex)
+		else if(OS.get() == OS.LINUX)
 		{
-			System.out.println("Failed to start xdg-open");
-			ex.printStackTrace();
-			MainFrame.getInstance().showError(Config.getString("error.cant_open_client_folder"), Config.getString("error.io_exception"));
+			pb.command("xdg-open", file.getAbsolutePath());
 		}
-	}
-
-	public static byte[] getBytes(InputStream is) throws IOException
-	{
-		int len;
-		int size = 1024;
-		byte[] buf;
-
-		if(is instanceof ByteArrayInputStream)
+		else if(OS.get() == OS.WINDOWS)
 		{
-			size = is.available();
-			buf = new byte[size];
+			pb.command("cmd", "/c", "start", "", file.getAbsolutePath());
 		}
 		else
 		{
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			buf = new byte[size];
-			while((len = is.read(buf, 0, size)) != -1)
-			{
-				bos.write(buf, 0, len);
-			}
-			buf = bos.toByteArray();
+			throw new IllegalStateException();
 		}
-		return buf;
+
+		new Thread(() -> {
+			try
+			{
+				pb.start();
+			}
+			catch(IOException e)
+			{
+				System.out.println("Failed to start open");
+				e.printStackTrace();
+				MainFrame.getInstance().showError(Config.getString("error.cant_open_client_folder"), Config.getString("error.io_exception"));
+			}
+		}).start();
 	}
 
 	public static String calculateHash(String digest_type, File file)
