@@ -86,26 +86,37 @@ public class MainShell implements LauncherUI
         shellLayout.verticalSpacing = 0;
         shell.setLayout(shellLayout);
 
-        // --- Top Composite: status, progress, dlSpeed ---
+        // --- Top Composite: status, dlSpeed (row 1) ---
         Composite topComposite = new Composite(shell, SWT.NONE);
         topComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        GridLayout topLayout = new GridLayout(3, false);
+        GridLayout topLayout = new GridLayout(2, false);
         topLayout.marginWidth = 5;
         topLayout.marginHeight = 5;
         topComposite.setLayout(topLayout);
 
         statusLabel = new LocaleAwareLabel(topComposite, SWT.NONE, "main.loading");
-        statusLabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+        statusLabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, true, false));
 
-        progressBar = new ProgressBar(topComposite, SWT.SMOOTH);
+        dlSpeedLabel = new Label(topComposite, SWT.RIGHT);
+        GridData dlGridData = new GridData(SWT.END, SWT.CENTER, false, false);
+        dlGridData.widthHint = 90;
+        dlGridData.minimumWidth = 60;
+        dlSpeedLabel.setLayoutData(dlGridData);
+        dlSpeedLabel.setText("");
+
+        // --- Progress Composite: progress bar (row 2) ---
+        Composite progressComposite = new Composite(shell, SWT.NONE);
+        progressComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        GridLayout progressLayout = new GridLayout(1, false);
+        progressLayout.marginWidth = 5;
+        progressLayout.marginHeight = 0;
+        progressComposite.setLayout(progressLayout);
+
+        progressBar = new ProgressBar(progressComposite, SWT.SMOOTH);
         progressBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         progressBar.setMinimum(0);
         progressBar.setMaximum(100);
         progressBar.setState(SWT.INDETERMINATE);
-
-        dlSpeedLabel = new Label(topComposite, SWT.NONE);
-        dlSpeedLabel.setLayoutData(new GridData(SWT.END, SWT.CENTER, false, false));
-        dlSpeedLabel.setText("");
 
         // --- Center Composite: scrolled detail area ---
         Composite centerComposite = new Composite(shell, SWT.NONE);
@@ -168,6 +179,7 @@ public class MainShell implements LauncherUI
             return;
         }
         statusLabel.setTextKey(key, params);
+        statusLabel.getParent().layout();
         addDetail(key, progress, params);
     }
 

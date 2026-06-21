@@ -87,6 +87,11 @@ public class LocaleAwareTextArea extends Text implements LocaleAwareInterface
                 super.append(s.getKey());
             }
         });
+        Composite parent = getParent();
+        if (parent != null && !parent.isDisposed())
+        {
+            parent.layout();
+        }
     }
 
     @Override

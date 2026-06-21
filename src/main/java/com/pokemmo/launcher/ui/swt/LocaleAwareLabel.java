@@ -37,6 +37,11 @@ public class LocaleAwareLabel extends Label implements LocaleAwareInterface
         this.key = key;
         this.params = params;
         super.setText(Config.getString(key, params));
+        Composite parent = getParent();
+        if (parent != null && !parent.isDisposed())
+        {
+            parent.layout();
+        }
     }
 
     @Override
@@ -49,6 +54,11 @@ public class LocaleAwareLabel extends Label implements LocaleAwareInterface
     public void updateLocale()
     {
         super.setText(Config.getString(key, params));
+        Composite parent = getParent();
+        if (parent != null && !parent.isDisposed())
+        {
+            parent.layout();
+        }
     }
 
     @Override

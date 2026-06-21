@@ -52,6 +52,11 @@ public class LocaleAwareCheckbox extends Button implements LocaleAwareInterface
         {
             super.setToolTipText(Config.getString(tooltipKey, tooltipParams));
         }
+        Composite parent = getParent();
+        if (parent != null && !parent.isDisposed())
+        {
+            parent.layout();
+        }
     }
 
     @Override

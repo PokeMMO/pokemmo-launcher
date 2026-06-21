@@ -88,13 +88,15 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 		}
 
 		/**
-		 * Top Bar
+		 * Top Bar (status + dlSpeed row, progress bar row below)
 		 */
-		JPanel top_panel = new JPanel();
+		JPanel topContainer = new JPanel(new BorderLayout());
 		{
-			top_panel.add(status, BorderLayout.WEST);
-			top_panel.add(progressBar, BorderLayout.CENTER);
-			top_panel.add(dlSpeed, BorderLayout.EAST);
+			JPanel statusRow = new JPanel(new BorderLayout());
+			statusRow.add(status, BorderLayout.WEST);
+			statusRow.add(dlSpeed, BorderLayout.EAST);
+			topContainer.add(statusRow, BorderLayout.NORTH);
+			topContainer.add(progressBar, BorderLayout.SOUTH);
 		}
 
 		/**
@@ -233,7 +235,7 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 		 * Add our widgets
 		 */
 		{
-			add(top_panel, BorderLayout.PAGE_START);
+			add(topContainer, BorderLayout.PAGE_START);
 			add(new JScrollPane(taskOutput), BorderLayout.CENTER);
 			add(bottom_panel, BorderLayout.PAGE_END);
 		}
