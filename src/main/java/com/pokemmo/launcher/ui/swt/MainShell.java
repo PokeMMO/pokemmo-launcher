@@ -164,6 +164,17 @@ public class MainShell implements LauncherUI
             configButton.setVisible(false);
         }
 
+        // Cancel background downloads on close
+        shell.addShellListener(new ShellAdapter()
+        {
+            @Override
+            public void shellClosed(ShellEvent e)
+            {
+                parent.cancelUpdater();
+                dispose();
+            }
+        });
+
         // Register this MainShell as the UI bridge error callback
         UiBridge.setErrorCallback(this::showError);
     }

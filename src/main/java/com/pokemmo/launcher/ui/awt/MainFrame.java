@@ -59,7 +59,17 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 
 		UIManager.getLookAndFeelDefaults().put("defaultFont", new Font(Font.SANS_SERIF, Font.PLAIN, 14));
 
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		addWindowListener(new java.awt.event.WindowAdapter()
+		{
+			@Override
+			public void windowClosing(java.awt.event.WindowEvent e)
+			{
+				parent.cancelUpdater();
+				dispose();
+				System.exit(0);
+			}
+		});
 
 		status = new LocaleAwareLabel("main.loading");
 		dlSpeed = new JLabel("");

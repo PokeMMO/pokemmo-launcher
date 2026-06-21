@@ -98,6 +98,7 @@ public class Launcher
 
 	private boolean isLaunching = false;
 	private boolean isUpdating = false;
+	private ExecutorService networkExecutorService;
 
 	StringWriter stackTraceStringWriter = new StringWriter();
 	PrintWriter stackTracePrintWriter = new PrintWriter(stackTraceStringWriter);
@@ -498,7 +499,7 @@ public class Launcher
 			launcherUI.setStatus("status.game_download", 30);
 		}
 
-		ExecutorService networkExecutorService = Executors.newFixedThreadPool(Config.NETWORK_THREADS);
+		networkExecutorService = Executors.newFixedThreadPool(Config.NETWORK_THREADS);
 
 		int total_files = FeedManager.getFiles().size();
 		if(total_files < 1)
@@ -625,6 +626,24 @@ public class Launcher
 	public boolean isUpdating()
 	{
 		return isUpdating;
+	}
+
+	/**
+	 * Cancels any running update/download threads and resets the updating state.
+	 * Called when the UI window is closed.
+	 */
+	public void cancelUpdater()
+	{
+		isUpdating = false;
+		if (networkExecutorService != null && !networkExecutorService.isShutdown())
+		{
+			networkExecutorService.shutdownNow();
+		}
+	}
+
+	public LauncherUI getLauncherUI()
+	{
+		return launcherUI;
 	}
 
 	private boolean downloadFile(UpdateFile file, ProgressTracker.Listener progressListener)
