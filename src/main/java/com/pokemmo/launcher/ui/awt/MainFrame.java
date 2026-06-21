@@ -13,6 +13,8 @@ import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.config.Config;
 import com.pokemmo.launcher.enums.PokeMMOLocale;
 import com.pokemmo.launcher.enums.UpdateChannel;
+import com.pokemmo.launcher.ui.LauncherUI;
+import com.pokemmo.launcher.ui.shared.UiBridge;
 import com.pokemmo.launcher.updater.UpdaterSwingWorker;
 import com.pokemmo.launcher.util.Util;
 
@@ -22,7 +24,7 @@ import javax.swing.text.DefaultCaret;
 /**
  * @author Kyu
  */
-public class MainFrame extends JFrame implements ActionListener
+public class MainFrame extends JFrame implements ActionListener, LauncherUI
 {
 	private static final Font FONT_MONOSPACED = new Font(Font.MONOSPACED, Font.PLAIN, 14);
 
@@ -242,6 +244,9 @@ public class MainFrame extends JFrame implements ActionListener
 		setTitle(Config.getString("main.title"));
 		setResizable(false);
 		setVisible(!Launcher.QUICK_AUTOSTART);
+
+		// Register this MainFrame as the UI bridge error callback
+		UiBridge.setErrorCallback(this::showError);
 	}
 
 	@Override
@@ -253,6 +258,7 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 	}
 
+	@Override
 	public void setStatus(final String string, int progress, Object... params)
 	{
 		if(!SwingUtilities.isEventDispatchThread())
@@ -263,6 +269,7 @@ public class MainFrame extends JFrame implements ActionListener
 		addDetail(string, progress, params);
 	}
 
+	@Override
 	public void addDetail(final String string, final int progress, Object... params)
 	{
 		if(!SwingUtilities.isEventDispatchThread())
@@ -293,6 +300,7 @@ public class MainFrame extends JFrame implements ActionListener
 		validate();
 	}
 
+	@Override
 	public void updateProgress(int progress)
 	{
 		if(!SwingUtilities.isEventDispatchThread())
@@ -313,6 +321,7 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 	}
 
+	@Override
 	public void updateDLSpeed(long bytes_per_second)
 	{
 		if(!SwingUtilities.isEventDispatchThread())
@@ -339,46 +348,55 @@ public class MainFrame extends JFrame implements ActionListener
 		return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
 	}
 
+	@Override
 	public void showMessage(String message, String window_title)
 	{
 		showMessage(message, window_title, null);
 	}
 
+	@Override
 	public void showMessage(String message, String window_title, Runnable runnable)
 	{
 		showMessage(message, window_title, JOptionPane.INFORMATION_MESSAGE, runnable);
 	}
 
+	@Override
 	public void showError(String message, String window_title)
 	{
 		showError(message, window_title, null);
 	}
 
+	@Override
 	public void showError(String message, String window_title, Runnable runnable)
 	{
 		showMessage(message, window_title, JOptionPane.ERROR_MESSAGE, runnable);
 	}
 
+	@Override
 	public void showErrorWithStacktrace(String message, String window_title, String stacktrace, Runnable runnable)
 	{
 		showMessageWithTextArea(message, window_title, stacktrace, JOptionPane.ERROR_MESSAGE, runnable);
 	}
 
+	@Override
 	public void showErrorWithStacktrace(String message, String window_title, Throwable throwable, Runnable runnable)
 	{
 		showMessageWithTextArea(message, window_title, parent.getStacktraceString(throwable), JOptionPane.ERROR_MESSAGE, runnable);
 	}
 
+	@Override
 	public void showErrorWithStacktrace(String message, String window_title, Throwable[] throwables, Runnable runnable)
 	{
 		showMessageWithTextArea(message, window_title, parent.getStacktraceString(throwables), JOptionPane.ERROR_MESSAGE, runnable);
 	}
 
+	@Override
 	public void showInfo(String message, Object... params)
 	{
 		addDetail(message, 90, params);
 	}
 
+	@Override
 	public boolean showYesNoDialogue(String message, String window_title)
 	{
 		return JOptionPane.showConfirmDialog(this, message, window_title, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION;
@@ -412,6 +430,7 @@ public class MainFrame extends JFrame implements ActionListener
 			executorService.execute(runnable);
 	}
 
+	@Override
 	public void setCanStart()
 	{
 		launchGame.setEnabled(true);
@@ -424,5 +443,16 @@ public class MainFrame extends JFrame implements ActionListener
 		{
 			launchGame.addActionListener((event) -> parent.launchGame());
 		}
+	}
+
+	@Override
+	public void dispose()
+	{
+		executorService.shutdown();
+		if (configWindow != null)
+		{
+			configWindow.dispose();
+		}
+		super.dispose();
 	}
 }

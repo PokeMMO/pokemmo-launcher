@@ -1,5 +1,5 @@
 plugins {
-    id 'java-library'
+    id 'java'
     id 'application'
     id 'org.graalvm.buildtools.native' version '1.1.0'
     id 'idea'
@@ -9,6 +9,7 @@ plugins {
 repositories {
     mavenCentral()
     google()
+    gradlePluginPortal()
 }
 
 configurations {

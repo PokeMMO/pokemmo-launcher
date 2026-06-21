@@ -1,6 +1,8 @@
 package com.pokemmo.launcher.ui.awt;
 
 import com.pokemmo.launcher.config.Config;
+import com.pokemmo.launcher.ui.shared.LocaleAwareElementManager;
+import com.pokemmo.launcher.ui.shared.LocaleAwareInterface;
 
 import javax.swing.*;
 
@@ -10,11 +12,13 @@ import javax.swing.*;
 public class LocaleAwareButton extends JButton implements LocaleAwareInterface
 {
 	private String key;
+	private Object[] params;
 	private String tooltip;
 
 	public LocaleAwareButton(String key)
 	{
 		this.key = key;
+		this.params = new Object[0];
 		this.tooltip = "";
 		init(key, null);
 
@@ -40,6 +44,7 @@ public class LocaleAwareButton extends JButton implements LocaleAwareInterface
 	public void setTextKey(String key, Object... params)
 	{
 		this.key = key;
+		this.params = params;
 		super.setText(Config.getString(key, params));
 	}
 
@@ -65,7 +70,7 @@ public class LocaleAwareButton extends JButton implements LocaleAwareInterface
 	@Override
 	public void updateLocale()
 	{
-		super.setText(Config.getString(key));
+		super.setText(Config.getString(key, params));
 		super.setToolTipText(Config.getString(tooltip));
 	}
 }

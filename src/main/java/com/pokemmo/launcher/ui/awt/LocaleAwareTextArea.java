@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.pokemmo.launcher.config.Config;
+import com.pokemmo.launcher.ui.shared.LocaleAwareElementManager;
+import com.pokemmo.launcher.ui.shared.LocaleAwareInterface;
+import com.pokemmo.launcher.ui.shared.LocaleAwareStringBundle;
 
 import javax.swing.*;
 

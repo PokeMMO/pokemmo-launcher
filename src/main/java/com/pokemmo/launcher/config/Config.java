@@ -14,7 +14,7 @@ import java.util.ResourceBundle;
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.enums.PokeMMOLocale;
 import com.pokemmo.launcher.enums.UpdateChannel;
-import com.pokemmo.launcher.ui.awt.LocaleAwareElementManager;
+import com.pokemmo.launcher.ui.shared.LocaleAwareElementManager;
 
 /**
  * @author Kyu

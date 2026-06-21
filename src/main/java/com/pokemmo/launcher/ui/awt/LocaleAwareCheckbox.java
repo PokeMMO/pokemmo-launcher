@@ -1,6 +1,8 @@
 package com.pokemmo.launcher.ui.awt;
 
 import com.pokemmo.launcher.config.Config;
+import com.pokemmo.launcher.ui.shared.LocaleAwareElementManager;
+import com.pokemmo.launcher.ui.shared.LocaleAwareInterface;
 
 import javax.swing.*;
 

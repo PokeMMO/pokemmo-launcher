@@ -22,7 +22,7 @@ import com.github.mizosoft.methanol.ProgressTracker;
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.config.Config;
 import com.pokemmo.launcher.enums.OS;
-import com.pokemmo.launcher.ui.awt.MainFrame;
+import com.pokemmo.launcher.ui.shared.UiBridge;
 
 /**
  * @author Desu
@@ -60,7 +60,7 @@ public class Util
 			{
 				System.out.println("Failed to start open");
 				e.printStackTrace();
-				MainFrame.getInstance().showError(Config.getString("error.cant_open_client_folder"), Config.getString("error.io_exception"));
+				UiBridge.showError(Config.getString("error.cant_open_client_folder"), Config.getString("error.io_exception"));
 			}
 		}).start();
 	}

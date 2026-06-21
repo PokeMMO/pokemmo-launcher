@@ -1,6 +1,8 @@
 package com.pokemmo.launcher.ui.awt;
 
 import com.pokemmo.launcher.config.Config;
+import com.pokemmo.launcher.ui.shared.LocaleAwareElementManager;
+import com.pokemmo.launcher.ui.shared.LocaleAwareInterface;
 
 import javax.swing.*;
 
@@ -10,10 +12,12 @@ import javax.swing.*;
 public class LocaleAwareLabel extends JLabel implements LocaleAwareInterface
 {
 	private String key;
+	private Object[] params;
 
 	public LocaleAwareLabel(String key)
 	{
 		this.key = key;
+		this.params = new Object[0];
 		super.setText(Config.getString(key));
 
 		LocaleAwareElementManager.instance.addElement(this);
@@ -21,14 +25,15 @@ public class LocaleAwareLabel extends JLabel implements LocaleAwareInterface
 
 	public void updateLocale()
 	{
-		super.setText(Config.getString(key));
+		super.setText(Config.getString(key, params));
 	}
 
 	@Override
 	public void setTextKey(String key, Object... params)
 	{
 		this.key = key;
-		super.setText(Config.getString(key));
+		this.params = params;
+		super.setText(Config.getString(key, params));
 	}
 
 	@Override

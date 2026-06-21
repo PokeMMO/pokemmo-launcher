@@ -18,7 +18,7 @@ import org.xml.sax.InputSource;
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.config.Config;
 import com.pokemmo.launcher.enums.UpdateChannel;
-import com.pokemmo.launcher.ui.awt.MainFrame;
+import com.pokemmo.launcher.ui.LauncherUI;
 import com.pokemmo.launcher.util.CryptoUtil;
 import com.pokemmo.launcher.util.Util;
 
@@ -39,7 +39,7 @@ public class FeedManager
 	public static boolean SUCCESSFUL = false;
 	private static final List<UpdateFile> files = new ArrayList<>();
 
-	public static void load(MainFrame mainFrame)
+	public static void load(LauncherUI launcherUI)
 	{
 		UpdateChannel channel = Config.UPDATE_CHANNEL;
 
@@ -61,7 +61,7 @@ public class FeedManager
 				CompletableFuture.allOf(mainFeedResponse, mainFeedSigResponse, updateFeedResponse, updateFeedSigResponse)
 						.exceptionally(error ->
 						{
-							mainFrame.showInfo("status.networking.feed_load_failed_validation", mirror, "INVALID_001");
+							launcherUI.showInfo("status.networking.feed_load_failed_validation", mirror, "INVALID_001");
 							return null;
 						}).join();
 
@@ -73,14 +73,14 @@ public class FeedManager
 				if(!CryptoUtil.verifySignature(mainFeedRaw, mainFeedSigRaw, pub_key, sig_format))
 				{
 					System.out.println("Main feed failed verification");
-					mainFrame.showInfo(Config.getString("status.networking.feed_load_failed_alt", mirror));
+					launcherUI.showInfo(Config.getString("status.networking.feed_load_failed_alt", mirror));
 					continue;
 				}
 
 				if(!CryptoUtil.verifySignature(updateFeedRaw, updateFeedSigRaw, pub_key, sig_format))
 				{
 					System.out.println("Update feed failed verification");
-					mainFrame.showInfo(Config.getString("status.networking.feed_load_failed_alt", mirror));
+					launcherUI.showInfo(Config.getString("status.networking.feed_load_failed_alt", mirror));
 					continue;
 				}
 
@@ -144,14 +144,14 @@ public class FeedManager
 			catch(Exception e)
 			{
 				e.printStackTrace();
-				mainFrame.showInfo(Config.getString("status.networking.feed_load_failed_alt", mirror));
+				launcherUI.showInfo(Config.getString("status.networking.feed_load_failed_alt", mirror));
 				failures.add(e);
 			}
 		}
 
 		if(!SUCCESSFUL)
 		{
-			mainFrame.showErrorWithStacktrace(Config.getString("status.networking.feed_load_failed"), Config.getString("status.title.fatal_error"), failures.toArray(new Throwable[0]), () -> System.exit(Launcher.EXIT_CODE_NETWORK_FAILURE));
+			launcherUI.showErrorWithStacktrace(Config.getString("status.networking.feed_load_failed"), Config.getString("status.title.fatal_error"), failures.toArray(new Throwable[0]), () -> System.exit(Launcher.EXIT_CODE_NETWORK_FAILURE));
 		}
 	}
 

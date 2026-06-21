@@ -28,10 +28,13 @@ import com.pokemmo.launcher.enums.Arch;
 import com.pokemmo.launcher.enums.OS;
 import com.pokemmo.launcher.enums.PokeMMOLocale;
 import com.pokemmo.launcher.enums.UpdateChannel;
+import com.pokemmo.launcher.ui.LauncherUI;
 import com.pokemmo.launcher.ui.awt.MainFrame;
+import com.pokemmo.launcher.ui.swt.MainShell;
 import com.pokemmo.launcher.updater.FeedManager;
 import com.pokemmo.launcher.updater.UpdateFile;
 import com.pokemmo.launcher.updater.UpdaterSwingWorker;
+import com.pokemmo.launcher.updater.UpdaterSwtWorker;
 import com.pokemmo.launcher.util.Util;
 
 /**
@@ -77,7 +80,7 @@ public class Launcher
 	public static boolean QUICK_AUTOSTART = true;
 	public static boolean HIDE_CONFIG = true;
 
-	private MainFrame mainFrame;
+	private LauncherUI launcherUI;
 
 	/**
 	 * The default location of PokeMMO.exe and other files
@@ -139,7 +142,28 @@ public class Launcher
 			pokemmoDir = new File(pokemmo_data_home + fileSeparator + "pokemmo-client-" + Config.UPDATE_CHANNEL.toString() + fileSeparator);
 		}
 
-		mainFrame = new MainFrame(this);
+		// Decide which UI to use: SWT by default, AWT with --awt-ui flag
+		boolean useAwt = Boolean.getBoolean("awt.ui");
+		if (useAwt)
+		{
+			launcherUI = new MainFrame(this);
+		}
+		else
+		{
+			org.eclipse.swt.widgets.Display display = new org.eclipse.swt.widgets.Display();
+			launcherUI = new MainShell(this, display);
+
+			// Shutdown hook ensures display.dispose() after System.exit()
+			Runtime.getRuntime().addShutdownHook(new Thread(() ->
+			{
+				if (display != null && !display.isDisposed())
+				{
+					display.dispose();
+				}
+			}));
+
+			((MainShell) launcherUI).open();
+		}
 
 		String version = System.getProperty("java.specification.version");
 
@@ -162,7 +186,11 @@ public class Launcher
 
 		if(majorver < 21)
 		{
-			mainFrame.showError(Config.getString("error.incompatible_jvm", Config.getString("status.title.failed_startup")), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+			launcherUI.showError(Config.getString("error.incompatible_jvm", Config.getString("status.title.failed_startup")), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+			if (!useAwt)
+			{
+				enterSwtEventLoop((MainShell) launcherUI);
+			}
 			return;
 		}
 
@@ -180,13 +208,21 @@ public class Launcher
 
 		if(!pokemmoDir.isDirectory())
 		{
-			mainFrame.showError(Config.getString("error.dir_not_dir", pokemmoDir, "DIR_5"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+			launcherUI.showError(Config.getString("error.dir_not_dir", pokemmoDir, "DIR_5"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+			if (!useAwt)
+			{
+				enterSwtEventLoop((MainShell) launcherUI);
+			}
 			return;
 		}
 
 		if(!pokemmoDir.setReadable(true) || !pokemmoDir.setWritable(true) || !pokemmoDir.setExecutable(true))
 		{
-			mainFrame.showError(Config.getString("error.dir_not_accessible", pokemmoDir, "DIR_2"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+			launcherUI.showError(Config.getString("error.dir_not_accessible", pokemmoDir, "DIR_2"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+			if (!useAwt)
+			{
+				enterSwtEventLoop((MainShell) launcherUI);
+			}
 			return;
 		}
 
@@ -194,17 +230,17 @@ public class Launcher
 		{
 			if(QUICK_AUTOSTART)
 			{
-				displayMainFrame();
+				displayLauncherUI();
 			}
 
 			createSymlinkedDirectories();
-			new UpdaterSwingWorker(this, mainFrame, false, false).execute();
+			createUpdaterWorker(repair, false);
 		}
 		else if(!isPokemmoValid())
 		{
 			if(QUICK_AUTOSTART)
 			{
-				displayMainFrame();
+				displayLauncherUI();
 			}
 
 			int revision = -1;
@@ -221,20 +257,60 @@ public class Launcher
 			}
 
 			// If our declared revision is invalid, repair
-			new UpdaterSwingWorker(this, mainFrame, repair || (revision <= 0 || (FeedManager.MIN_REVISION > 0 && revision >= FeedManager.MIN_REVISION)), false).execute();
+			createUpdaterWorker(repair || (revision <= 0 || (FeedManager.MIN_REVISION > 0 && revision >= FeedManager.MIN_REVISION)), false);
 		}
 		else
 		{
-			mainFrame.showInfo("status.check_success");
-			mainFrame.setStatus("status.ready", 100);
-			mainFrame.setCanStart();
+			launcherUI.showInfo("status.check_success");
+			launcherUI.setStatus("status.ready", 100);
+			launcherUI.setCanStart();
+		}
+
+		// Enter SWT event loop if using SWT
+		if (!useAwt && launcherUI instanceof MainShell)
+		{
+			enterSwtEventLoop((MainShell) launcherUI);
 		}
 	}
 
-	private void displayMainFrame()
+	/**
+	 * Executes the appropriate updater worker based on UI type.
+	 */
+	private void createUpdaterWorker(boolean repair, boolean clean)
+	{
+		if (launcherUI instanceof MainFrame)
+		{
+			new UpdaterSwingWorker(this, (MainFrame) launcherUI, repair, clean).execute();
+		}
+		else
+		{
+			new UpdaterSwtWorker(this, launcherUI, repair, clean).execute();
+		}
+	}
+
+	/**
+	 * Enter the SWT event loop (blocks until shell is disposed or System.exit).
+	 */
+	private void enterSwtEventLoop(MainShell mainShell)
+	{
+		org.eclipse.swt.widgets.Display display = org.eclipse.swt.widgets.Display.getCurrent();
+		while (!mainShell.isDisposed())
+		{
+			if (!display.readAndDispatch())
+			{
+				display.sleep();
+			}
+		}
+		if (!display.isDisposed())
+		{
+			display.dispose();
+		}
+	}
+
+	private void displayLauncherUI()
 	{
 		QUICK_AUTOSTART = false;
-		mainFrame.setVisible(true);
+		launcherUI.setVisible(true);
 	}
 
 	public void launchGame()
@@ -294,7 +370,7 @@ public class Launcher
 		}
 		catch(IOException e)
 		{
-			mainFrame.showErrorWithStacktrace(Config.getString("status.failed_startup"), Config.getString("status.title.failed_startup"), getStacktraceString(e), () -> System.exit(EXIT_CODE_IO_FAILURE));
+			launcherUI.showErrorWithStacktrace(Config.getString("status.failed_startup"), Config.getString("status.title.failed_startup"), getStacktraceString(e), () -> System.exit(EXIT_CODE_IO_FAILURE));
 			return;
 		}
 
@@ -315,7 +391,7 @@ public class Launcher
 		if(processInfo.command().isEmpty())
 		{
 			// Something really bad happened. Our j11 process API doesn't work. Bail out to prevent other issues.
-			mainFrame.showErrorWithStacktrace(Config.getString("status.failed_startup"), Config.getString("status.title.failed_startup"), "JPROC_FAIL", () -> System.exit(EXIT_CODE_IO_FAILURE));
+			launcherUI.showErrorWithStacktrace(Config.getString("status.failed_startup"), Config.getString("status.title.failed_startup"), "JPROC_FAIL", () -> System.exit(EXIT_CODE_IO_FAILURE));
 			return;
 		}
 
@@ -357,7 +433,7 @@ public class Launcher
 
 		if(!destroyables.isEmpty())
 		{
-			if(mainFrame.showYesNoDialogue(Config.getString("status.game_already_running"), ""))
+			if(launcherUI.showYesNoDialogue(Config.getString("status.game_already_running"), ""))
 			{
 				for(ProcessHandle p : destroyables)
 				{
@@ -383,7 +459,7 @@ public class Launcher
 		 */
 		Set<UpdateFile> invalidFiles = new HashSet<>();
 
-		mainFrame.setStatus("status.game_verification", 20);
+		launcherUI.setStatus("status.game_verification", 20);
 
 		for(UpdateFile file : FeedManager.getFiles())
 		{
@@ -414,12 +490,12 @@ public class Launcher
 
 		if(repair)
 		{
-			mainFrame.setStatus("status.game_repair", 30);
+			launcherUI.setStatus("status.game_repair", 30);
 		}
 		else
 		{
-			mainFrame.addDetail("status.title.update_available", 30);
-			mainFrame.setStatus("status.game_download", 30);
+			launcherUI.addDetail("status.title.update_available", 30);
+			launcherUI.setStatus("status.game_download", 30);
 		}
 
 		ExecutorService networkExecutorService = Executors.newFixedThreadPool(Config.NETWORK_THREADS);
@@ -444,7 +520,7 @@ public class Launcher
 
 			if(!f.getParentFile().mkdirs() && !f.getParentFile().exists())
 			{
-				mainFrame.showError(Config.getString("error.dir_not_accessible", f.getParentFile(), "DIR_8"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+				launcherUI.showError(Config.getString("error.dir_not_accessible", f.getParentFile(), "DIR_8"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
 				return;
 			}
 
@@ -455,7 +531,7 @@ public class Launcher
 			{
 				if(repair)
 				{
-					mainFrame.addDetail("status.files.repairing", ((counter * 100) / total_files), file.name);
+					launcherUI.addDetail("status.files.repairing", ((counter * 100) / total_files), file.name);
 					System.out.println("Checksum mismatch for " + file.name);
 					System.out.println("Wanted SHA256: " + checksum_sha256 + " | Actual: " + hash_sha256);
 				}
@@ -468,13 +544,13 @@ public class Launcher
 
 		if(to_download.isEmpty())
 		{
-			mainFrame.setStatus("status.game_verified", 90);
-			mainFrame.setStatus("status.ready", 100);
+			launcherUI.setStatus("status.game_verified", 90);
+			launcherUI.setStatus("status.ready", 100);
 			isUpdating = false;
 			return;
 		}
 
-		mainFrame.setStatus("status.downloading", 0);
+		launcherUI.setStatus("status.downloading", 0);
 
 		Phaser phaser = new Phaser(to_download.size() + 1);
 
@@ -483,19 +559,19 @@ public class Launcher
 		{
 			networkExecutorService.submit(() ->
 			{
-				mainFrame.addDetail("status.files.downloading", getProgress(to_download), file.name);
+				launcherUI.addDetail("status.files.downloading", getProgress(to_download), file.name);
 
 				if(downloadFile(file, (progress -> {
 					file.downloadedBytes = progress.totalBytesTransferred();
 
-					mainFrame.updateProgress(getProgress(to_download));
+					launcherUI.updateProgress(getProgress(to_download));
 				})))
 				{
 					phaser.arrive();
 				}
 				else
 				{
-					mainFrame.showError(Config.getString("error.download_error"), "", () -> System.exit(EXIT_CODE_NETWORK_FAILURE));
+					launcherUI.showError(Config.getString("error.download_error"), "", () -> System.exit(EXIT_CODE_NETWORK_FAILURE));
 				}
 			});
 		}
@@ -508,9 +584,9 @@ public class Launcher
 		networkExecutorService.shutdown();
 		isUpdating = false;
 
-		mainFrame.updateDLSpeed(-1);
-		mainFrame.showInfo("status.check_success");
-		mainFrame.setStatus("status.ready", 100);
+		launcherUI.updateDLSpeed(-1);
+		launcherUI.showInfo("status.check_success");
+		launcherUI.setStatus("status.ready", 100);
 	}
 
 	private long lastSpeedTime = 0;
@@ -540,7 +616,7 @@ public class Launcher
 			lastSpeedTime = now;
 			lastSpeedBytes = downloadedBytes;
 
-			mainFrame.updateDLSpeed(bytesPerSecond);
+			launcherUI.updateDLSpeed(bytesPerSecond);
 		}
 
 		return progress;
@@ -564,7 +640,7 @@ public class Launcher
 
 			if(!Util.downloadUrlToFile(httpClient, mirrors[mirror_index] + "/" + Config.UPDATE_CHANNEL.urlComponent() + "/current/client/" + file.name + "?v=" + file.getCacheBuster(), getFile(file.name + ".TEMPORARY"), progressListener))
 			{
-				mainFrame.showInfo("status.files.failed_download", file.name, mirror_index);
+				launcherUI.showInfo("status.files.failed_download", file.name, mirror_index);
 				disabledMirrors.add(mirror_index);
 				continue;
 			}
@@ -578,7 +654,7 @@ public class Launcher
 			String new_sha256_hash = Util.calculateHash("SHA-256", temporary_file);
 			if(!checksum_sha256.equalsIgnoreCase(new_sha256_hash))
 			{
-				mainFrame.showInfo(Config.getString("status.files.failed_checksum", file.name, checksum_sha256, new_sha256_hash, mirror_index));
+				launcherUI.showInfo(Config.getString("status.files.failed_checksum", file.name, checksum_sha256, new_sha256_hash, mirror_index));
 
 				if(temporary_file.isFile() && temporary_file.exists())
 				{
@@ -596,14 +672,14 @@ public class Launcher
 			if(old_file.isFile() && old_file.exists() && !old_file.delete())
 			{
 				//This is a fail case, changing mirror will not help.
-				mainFrame.showError(Config.getString("status.title.fatal_error", old_file.getPath()), Config.getString("status.title.fatal_error"));
+				launcherUI.showError(Config.getString("status.title.fatal_error", old_file.getPath()), Config.getString("status.title.fatal_error"));
 				return false;
 			}
 
 			if(!temporary_file.renameTo(old_file))
 			{
 				//This is a fail case, changing mirror will not help.
-				mainFrame.showError(Config.getString("status.title.fatal_error", temporary_file.getPath(), old_file.getPath()), Config.getString("status.title.fatal_error"));
+				launcherUI.showError(Config.getString("status.title.fatal_error", temporary_file.getPath(), old_file.getPath()), Config.getString("status.title.fatal_error"));
 				return false;
 			}
 			return true;
@@ -614,7 +690,7 @@ public class Launcher
 
 	private void clearCache()
 	{
-		mainFrame.showInfo("status.delete_caches");
+		launcherUI.showInfo("status.delete_caches");
 		if(!getFile("PokeMMO.exe").exists())
 		{
 			return;
@@ -645,19 +721,19 @@ public class Launcher
 		{
 			if(cache_file.delete())
 			{
-				mainFrame.showInfo("status.delete_cache_file", cache_file.getPath());
+				launcherUI.showInfo("status.delete_cache_file", cache_file.getPath());
 			}
 		}
 	}
 
 	private void downloadFeeds()
 	{
-		mainFrame.setStatus("status.networking.load", 0);
-		FeedManager.load(mainFrame);
+		launcherUI.setStatus("status.networking.load", 0);
+		FeedManager.load(launcherUI);
 
 		if(!FeedManager.SUCCESSFUL)
 		{
-			mainFrame.showErrorWithStacktrace(Config.getString("status.networking.feed_load_failed"), Config.getString("status.title.network_failure"), "UPDATE_FEED_FAILURE_1", () -> System.exit(EXIT_CODE_NETWORK_FAILURE));
+			launcherUI.showErrorWithStacktrace(Config.getString("status.networking.feed_load_failed"), Config.getString("status.title.network_failure"), "UPDATE_FEED_FAILURE_1", () -> System.exit(EXIT_CODE_NETWORK_FAILURE));
 		}
 	}
 
@@ -676,7 +752,7 @@ public class Launcher
 		File f = getPokemmoDir();
 		if(!f.mkdirs() && !f.exists())
 		{
-			mainFrame.showError(Config.getString("error.dir_not_accessible", pokemmoDir, "DIR_1"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+			launcherUI.showError(Config.getString("error.dir_not_accessible", pokemmoDir, "DIR_1"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
 		}
 	}
 
