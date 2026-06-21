@@ -15,7 +15,6 @@ import com.pokemmo.launcher.enums.PokeMMOLocale;
 import com.pokemmo.launcher.enums.UpdateChannel;
 import com.pokemmo.launcher.ui.LauncherUI;
 import com.pokemmo.launcher.ui.shared.UiBridge;
-import com.pokemmo.launcher.updater.UpdaterSwingWorker;
 import com.pokemmo.launcher.util.Util;
 
 import javax.swing.*;
@@ -457,5 +456,11 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 			configWindow.dispose();
 		}
 		super.dispose();
+	}
+
+	@Override
+	public void createUpdaterWorker(boolean repair, boolean clean)
+	{
+		new UpdaterSwingWorker(parent, this, repair, clean).execute();
 	}
 }

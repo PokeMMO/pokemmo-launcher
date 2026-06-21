@@ -1,4 +1,4 @@
-package com.pokemmo.launcher.updater;
+package com.pokemmo.launcher.ui.awt;
 
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.config.Config;
@@ -6,12 +6,7 @@ import com.pokemmo.launcher.ui.awt.MainFrame;
 
 import javax.swing.*;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -44,21 +39,23 @@ public class UpdaterSwingWorker extends SwingWorker<Void, Void>
 		{
 			if(clean)
 			{
-				Files.walk(Path.of(parent.getPokemmoDir().getAbsolutePath()))
-						.sorted(Comparator.reverseOrder())
-						.takeWhile(p -> success)
-						.forEach(p -> {
-							try
-							{
-								Files.delete(p);
-							}
-							catch(IOException e)
-							{
-								e.printStackTrace();
-								failed.add(e);
-								success = false;
-							}
-						});
+//				Files.walk(Path.of(parent.getPokemmoDir().getAbsolutePath()))
+//						.sorted(Comparator.reverseOrder())
+//						.takeWhile(p -> success)
+//						.forEach(p -> {
+//							try
+//							{
+//								Files.delete(p);
+//							}
+//							catch(IOException e)
+//							{
+//								e.printStackTrace();
+//								failed.add(e);
+//								success = false;
+//							}
+//						});
+
+				System.out.println("WOULD CLEAN");
 
 				SwingUtilities.invokeAndWait(() -> {
 					parent.createPokemmoDir();
@@ -66,7 +63,7 @@ public class UpdaterSwingWorker extends SwingWorker<Void, Void>
 				});
 			}
 		}
-		catch(IOException | InterruptedException | InvocationTargetException e)
+		catch(Exception e)
 		{
 			e.printStackTrace();
 			failed.add(e);

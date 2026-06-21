@@ -12,7 +12,16 @@ package com.pokemmo.launcher.ui;
  */
 public interface LauncherUI
 {
-    /**
+
+	/**
+	 * If necessary calls open.
+	 */
+	default void open()
+	{
+
+	}
+
+	/**
      * Set the status label text and optionally add a detail line.
      *
      * @param key      locale key for the status text
@@ -108,4 +117,20 @@ public interface LauncherUI
      * Clean up any native resources (fonts, colors, images, etc.).
      */
     void dispose();
+
+	/**
+	 * Enter the SWT event loop (blocks until shell is disposed or System#exit).
+	 * This method is empty on AWT
+	 */
+	default void enterEventLoop()
+	{
+
+	}
+
+	/**
+	 * This is kinda dumb, we can maybe deduplicate this class. This just exists to create the impl specific worker
+	 * @param repair
+	 * @param clean
+	 */
+	void createUpdaterWorker(boolean repair, boolean clean);
 }

@@ -29,12 +29,8 @@ import com.pokemmo.launcher.enums.OS;
 import com.pokemmo.launcher.enums.PokeMMOLocale;
 import com.pokemmo.launcher.enums.UpdateChannel;
 import com.pokemmo.launcher.ui.LauncherUI;
-import com.pokemmo.launcher.ui.awt.MainFrame;
-import com.pokemmo.launcher.ui.swt.MainShell;
 import com.pokemmo.launcher.updater.FeedManager;
 import com.pokemmo.launcher.updater.UpdateFile;
-import com.pokemmo.launcher.updater.UpdaterSwingWorker;
-import com.pokemmo.launcher.updater.UpdaterSwtWorker;
 import com.pokemmo.launcher.util.Util;
 
 /**
@@ -143,28 +139,8 @@ public class Launcher
 			pokemmoDir = new File(pokemmo_data_home + fileSeparator + "pokemmo-client-" + Config.UPDATE_CHANNEL.toString() + fileSeparator);
 		}
 
-		// Decide which UI to use: SWT by default, AWT with --awt-ui flag
-		boolean useAwt = Boolean.getBoolean("awt.ui");
-		if (useAwt)
-		{
-			launcherUI = new MainFrame(this);
-		}
-		else
-		{
-			org.eclipse.swt.widgets.Display display = new org.eclipse.swt.widgets.Display();
-			launcherUI = new MainShell(this, display);
-
-			// Shutdown hook ensures display.dispose() after System.exit()
-			Runtime.getRuntime().addShutdownHook(new Thread(() ->
-			{
-				if (display != null && !display.isDisposed())
-				{
-					display.dispose();
-				}
-			}));
-
-			((MainShell) launcherUI).open();
-		}
+		launcherUI = FIXTHIS
+		launcherUI.open();
 
 		String version = System.getProperty("java.specification.version");
 
@@ -188,10 +164,7 @@ public class Launcher
 		if(majorver < 21)
 		{
 			launcherUI.showError(Config.getString("error.incompatible_jvm", Config.getString("status.title.failed_startup")), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
-			if (!useAwt)
-			{
-				enterSwtEventLoop((MainShell) launcherUI);
-			}
+			launcherUI.enterEventLoop();
 			return;
 		}
 
@@ -210,20 +183,14 @@ public class Launcher
 		if(!pokemmoDir.isDirectory())
 		{
 			launcherUI.showError(Config.getString("error.dir_not_dir", pokemmoDir, "DIR_5"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
-			if (!useAwt)
-			{
-				enterSwtEventLoop((MainShell) launcherUI);
-			}
+			launcherUI.enterEventLoop();
 			return;
 		}
 
 		if(!pokemmoDir.setReadable(true) || !pokemmoDir.setWritable(true) || !pokemmoDir.setExecutable(true))
 		{
 			launcherUI.showError(Config.getString("error.dir_not_accessible", pokemmoDir, "DIR_2"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
-			if (!useAwt)
-			{
-				enterSwtEventLoop((MainShell) launcherUI);
-			}
+			launcherUI.enterEventLoop();
 			return;
 		}
 
@@ -235,7 +202,7 @@ public class Launcher
 			}
 
 			createSymlinkedDirectories();
-			createUpdaterWorker(repair, false);
+			launcherUI.createUpdaterWorker(repair, false);
 		}
 		else if(!isPokemmoValid())
 		{
@@ -258,7 +225,7 @@ public class Launcher
 			}
 
 			// If our declared revision is invalid, repair
-			createUpdaterWorker(repair || (revision <= 0 || (FeedManager.MIN_REVISION > 0 && revision >= FeedManager.MIN_REVISION)), false);
+			launcherUI.createUpdaterWorker(repair || (revision <= 0 || (FeedManager.MIN_REVISION > 0 && revision >= FeedManager.MIN_REVISION)), false);
 		}
 		else
 		{
@@ -267,45 +234,7 @@ public class Launcher
 			launcherUI.setCanStart();
 		}
 
-		// Enter SWT event loop if using SWT
-		if (!useAwt && launcherUI instanceof MainShell)
-		{
-			enterSwtEventLoop((MainShell) launcherUI);
-		}
-	}
-
-	/**
-	 * Executes the appropriate updater worker based on UI type.
-	 */
-	private void createUpdaterWorker(boolean repair, boolean clean)
-	{
-		if (launcherUI instanceof MainFrame)
-		{
-			new UpdaterSwingWorker(this, (MainFrame) launcherUI, repair, clean).execute();
-		}
-		else
-		{
-			new UpdaterSwtWorker(this, launcherUI, repair, clean).execute();
-		}
-	}
-
-	/**
-	 * Enter the SWT event loop (blocks until shell is disposed or System.exit).
-	 */
-	private void enterSwtEventLoop(MainShell mainShell)
-	{
-		org.eclipse.swt.widgets.Display display = org.eclipse.swt.widgets.Display.getCurrent();
-		while (!mainShell.isDisposed())
-		{
-			if (!display.readAndDispatch())
-			{
-				display.sleep();
-			}
-		}
-		if (!display.isDisposed())
-		{
-			display.dispose();
-		}
+		launcherUI.enterEventLoop();
 	}
 
 	private void displayLauncherUI()

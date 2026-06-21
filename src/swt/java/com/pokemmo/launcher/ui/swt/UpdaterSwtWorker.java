@@ -1,10 +1,6 @@
-package com.pokemmo.launcher.updater;
+package com.pokemmo.launcher.ui.swt;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -50,22 +46,24 @@ public class UpdaterSwtWorker
             {
                 if (clean)
                 {
-                    Files.walk(Path.of(parent.getPokemmoDir().getAbsolutePath()))
-                            .sorted(Comparator.reverseOrder())
-                            .takeWhile(p -> success)
-                            .forEach(p ->
-                            {
-                                try
-                                {
-                                    Files.delete(p);
-                                }
-                                catch (IOException e)
-                                {
-                                    e.printStackTrace();
-                                    failed.add(e);
-                                    success = false;
-                                }
-                            });
+//                    Files.walk(Path.of(parent.getPokemmoDir().getAbsolutePath()))
+//                            .sorted(Comparator.reverseOrder())
+//                            .takeWhile(p -> success)
+//                            .forEach(p ->
+//                            {
+//                                try
+//                                {
+//                                    Files.delete(p);
+//                                }
+//                                catch (IOException e)
+//                                {
+//                                    e.printStackTrace();
+//                                    failed.add(e);
+//                                    success = false;
+//                                }
+//                            });
+
+					System.out.println("WOULD CLEAN");
 
                     // syncExec replaces SwingUtilities.invokeAndWait;
                     // SWTException (unchecked) replaces InterruptedException / InvocationTargetException
@@ -76,7 +74,7 @@ public class UpdaterSwtWorker
                     });
                 }
             }
-            catch (IOException e)
+            catch (Exception e)
             {
                 e.printStackTrace();
                 failed.add(e);

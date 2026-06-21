@@ -9,7 +9,6 @@ import com.pokemmo.launcher.enums.PokeMMOLocale;
 import com.pokemmo.launcher.enums.UpdateChannel;
 import com.pokemmo.launcher.ui.LauncherUI;
 import com.pokemmo.launcher.ui.shared.UiBridge;
-import com.pokemmo.launcher.updater.UpdaterSwtWorker;
 import com.pokemmo.launcher.util.Util;
 
 import org.eclipse.swt.SWT;
@@ -69,10 +68,19 @@ public class MainShell implements LauncherUI
     /**
      * Constructor. Builds the UI but does not open the shell.
      */
-    public MainShell(Launcher parent, Display display)
+    public MainShell(Launcher parent)
     {
         this.parent = parent;
-        this.display = display;
+		this.display = new Display();
+
+		// Shutdown hook ensures display.dispose() after System.exit()
+		Runtime.getRuntime().addShutdownHook(new Thread(() ->
+		{
+			if (display != null && !display.isDisposed())
+			{
+				display.dispose();
+			}
+		}));
 
         // --- Shell ---
         shell = new Shell(display, SWT.SHELL_TRIM);
@@ -718,4 +726,26 @@ public class MainShell implements LauncherUI
         int y = parentBounds.y + (parentBounds.height - targetBounds.height) / 2;
         target.setLocation(x, y);
     }
+
+	@Override
+	public void enterEventLoop()
+	{
+		while (!isDisposed())
+		{
+			if (!display.readAndDispatch())
+			{
+				display.sleep();
+			}
+		}
+		if (!display.isDisposed())
+		{
+			display.dispose();
+		}
+	}
+
+	@Override
+	public void createUpdaterWorker(boolean repair, boolean clean)
+	{
+		new UpdaterSwtWorker(parent, this, repair, clean).execute();
+	}
 }
