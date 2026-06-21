@@ -14,12 +14,10 @@ repositories {
 
 sourceSets {
     awt {
-        // Inherit the output classes and dependencies from the main source set
         compileClasspath += sourceSets.main.output
         runtimeClasspath += sourceSets.main.output
     }
     swt {
-        // Inherit the output classes and dependencies from the main source set
         compileClasspath += sourceSets.main.output
         runtimeClasspath += sourceSets.main.output
     }
@@ -72,6 +70,27 @@ jar {
     }
 }
 
+tasks.register("jarAWT", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    archiveBaseName = "launcher"
+    archiveClassifier = "awt"
+
+    from sourceSets.main.output
+    from sourceSets.awt.output
+
+    exclude('META-INF/*.RSA')
+    exclude('META-INF/*.SF')
+    exclude('META-INF/*.DSA')
+    exclude('META-INF/eclipse*')
+
+    configurations = [project.configurations.getByName("runtimeClasspath"), project.configurations.getByName("awtRuntimeClasspath")]
+
+    mergeServiceFiles()
+
+    manifest {
+        attributes 'Main-Class': application.mainClass
+    }
+}
+
 application {
     mainClass = "com.pokemmo.launcher.Launcher"
 }
@@ -87,9 +106,11 @@ def swtPlatforms = [
 
 swtPlatforms.each {platform ->
     tasks.register("jar${platform.name}", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+        archiveBaseName = "launcher"
         archiveClassifier = platform.name
 
         from sourceSets.main.output
+        from sourceSets.swt.output
 
         exclude('META-INF/*.RSA')
         exclude('META-INF/*.SF')

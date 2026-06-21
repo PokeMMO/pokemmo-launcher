@@ -139,7 +139,8 @@ public class Launcher
 			pokemmoDir = new File(pokemmo_data_home + fileSeparator + "pokemmo-client-" + Config.UPDATE_CHANNEL.toString() + fileSeparator);
 		}
 
-		launcherUI = FIXTHIS
+
+		launcherUI = createLauncherUI();
 		launcherUI.open();
 
 		String version = System.getProperty("java.specification.version");
@@ -235,6 +236,45 @@ public class Launcher
 		}
 
 		launcherUI.enterEventLoop();
+	}
+
+	private LauncherUI createLauncherUI()
+	{
+		Class<?> clazz = null;
+		try
+		{
+			clazz = Class.forName("com.pokemmo.launcher.ui.swt.MainShell");
+		}
+		catch(ClassNotFoundException e)
+		{
+
+		}
+		if(clazz == null)
+		{
+			try
+			{
+				clazz = Class.forName("com.pokemmo.launcher.ui.awt.MainFrame");
+			}
+			catch(ClassNotFoundException e)
+			{
+
+			}
+		}
+
+		if(clazz == null)
+			throw new RuntimeException("Could not find a LauncherUI impl");
+
+		try
+		{
+			var constructor = clazz.getConstructor(Launcher.class);
+			if(constructor == null)
+				throw new RuntimeException("Could not find a LauncherUI impl constructor");
+			return (LauncherUI) constructor.newInstance(this);
+		}
+		catch(Exception e)
+		{
+			throw new RuntimeException(e);
+		}
 	}
 
 	private void displayLauncherUI()
