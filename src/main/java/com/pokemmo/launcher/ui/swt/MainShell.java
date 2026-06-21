@@ -257,7 +257,7 @@ public class MainShell implements LauncherUI
             return;
         }
 
-        dlSpeedLabel.setText(SwtUtil.humanReadableByteCount(bytes_per_second, false) + "/s");
+        dlSpeedLabel.setText(Util.humanReadableByteCount(bytes_per_second, false) + "/s");
     }
 
     @Override
