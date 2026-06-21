@@ -1,44 +1,183 @@
+plugins {
+    id 'java-library'
+    id 'application'
+    id 'org.graalvm.buildtools.native' version '1.1.0'
+    id 'idea'
+    id 'com.gradleup.shadow' version "9.4.1"
+}
+
 repositories {
     mavenCentral()
     google()
 }
 
-apply plugin: "java-library"
-apply plugin: "eclipse"
-apply plugin: "idea"
+configurations {
+    nativesWindowsX64
+    nativesWindowsARM64
+    nativesLinuxX64
+    nativesLinuxARM64
+    nativesMacosX64
+    nativesMacosARM64
+}
+
 
 dependencies {
     implementation("com.github.mizosoft.methanol:methanol:1.9.0")
+
+    compileOnly 'org.eclipse.platform:org.eclipse.swt.gtk.linux.x86_64:3.133.0'
+    nativesWindowsX64 'org.eclipse.platform:org.eclipse.swt.win32.win32.x86_64:3.133.0'
+    nativesWindowsARM64 'org.eclipse.platform:org.eclipse.swt.win32.win32.aarch64:3.133.0'
+    nativesLinuxX64 'org.eclipse.platform:org.eclipse.swt.gtk.linux.x86_64:3.133.0'
+    nativesLinuxARM64 'org.eclipse.platform:org.eclipse.swt.gtk.linux.aarch64:3.133.0'
+    nativesMacosX64 'org.eclipse.platform:org.eclipse.swt.cocoa.macosx.x86_64:3.133.0'
+    nativesMacosARM64 'org.eclipse.platform:org.eclipse.swt.cocoa.macosx.aarch64:3.133.0'
 }
 
 compileJava {
-    options.release = 21
+    options.release = 25
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
-project.ext.appName = "PokeMMO"
-project.ext.mainClassName = "com.pokemmo.launcher.Launcher"
-project.ext.mainJar = "launcher.jar"
-
 jar {
-    archiveFileName = project.mainJar
+    archiveFileName = "launcher.jar"
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
         attributes(
-                'Main-Class': project.mainClassName
+            'Main-Class': application.mainClass
         )
     }
     from {
         configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
     }
 }
+
+application {
+    mainClass = "com.pokemmo.launcher.Launcher"
+}
+
+def swtPlatforms = [
+        [name: "WindowsX64", swt_os: "win32", swt_arch: "x86_64"],
+        [name: "WindowsARM64", swt_os: "win32", swt_arch: "aarch64"],
+        [name: "LinuxX64", swt_os: "linux", swt_arch: "x86_64"],
+        [name: "LinuxARM64", swt_os: "linux", swt_arch: "aarch64"],
+        [name: "MacosARM64", swt_os: "macosx", swt_arch: "x86_64"],
+        [name: "MacosX64", swt_os: "macosx", swt_arch: "aarch64"]
+]
+
+swtPlatforms.each {platform ->
+    tasks.register("jar${platform.name}", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+        archiveClassifier = platform.name
+
+        from sourceSets.main.output
+
+        exclude('META-INF/*.RSA')
+        exclude('META-INF/*.SF')
+        exclude('META-INF/*.DSA')
+        exclude('META-INF/eclipse*')
+
+        configurations = [project.configurations.getByName("runtimeClasspath"), project.configurations.getByName("natives${platform.name}")]
+
+        mergeServiceFiles()
+
+        manifest {
+            attributes 'Main-Class': application.mainClass
+            attributes 'SWT-OS': platform.swt_os
+            attributes 'SWT-Arch': platform.swt_arch
+        }
+    }
+}
+
+graalvmNative {
+    agent {
+        enabled.set(true)
+        defaultMode = "standard" // Can be standard, conditional, or direct
+    }
+
+    binaries {
+        all {
+            javaLauncher = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(25)
+                vendor = JvmVendorSpec.GRAAL_VM
+                //Workaround https://github.com/gradle/gradle/issues/36118
+                //nativeImageCapable = true
+            }
+
+            imageName = "Launcher"
+            mainClass = application.mainClass
+            requiredVersion = '25.0'
+            buildArgs.addAll("-march=compatibility",
+                    "--enable-url-protocols=https",
+                    "-Dfile.encoding=UTF-8",
+                    "-Os",
+
+                    //Prevents pulling in unnecessary awt because reasons https://github.com/oracle/graal/issues/3225
+                    //  Summary: The AWT inclusion is triggered by SVM's ServiceLoaderFeature registering a reachability handler on java.net.ContentHandlerFactory (line 183 of ServiceLoaderFeature.java). Once that service becomes reachable through any URL/URLConnection code path, the
+                    //  handler registers the JDK-declared provider sun.awt.www.content.MultimediaContentHandlers, whose image content-handler classes transitively pull in Toolkit, BufferedImage, and Color. Your -H:ServiceLoaderFeatureExcludeServices=java.net.ContentHandlerFactory flag
+                    //  short-circuits this at line 167-181 by removing the service from the catalog before the reachability handler is ever installed.
+                    "-H:ServiceLoaderFeatureExcludeServices=java.net.ContentHandlerFactory",
+
+                    "--add-exports=org.graalvm.nativeimage.builder/com.oracle.svm.hosted=ALL-UNNAMED",
+                    "-R:MaxHeapSize=384M",
+                    "-H:IncludeLocales=en,de,es,fr,it,ja,ko,pl,pt,pt-Latn-BR,zh-Hans,zh-CN,zh-HK,zh-TW,zh-Hant,nl,el,tr,fil,ru"
+            )
+            jvmArgs.addAll("-Dfile.encoding=UTF8")
+            sharedLibrary = false
+            useFatJar = true
+        }
+        create("WindowsX64") {
+            classpath.setFrom(tasks.jarWindowsX64)
+            resources {
+                includedPatterns.addAll(".*\\.dll\$")
+            }
+            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.win32.*", "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS", "-H:NativeLinkerOption=/ENTRY:mainCRTStartup", "-H:NativeLinkerOption=" + rootProject.file("icons/icon.res").absolutePath);
+        }
+//        create("WindowsARM64") {
+//            classpath.setFrom(tasks.jarWindowsARM64)
+//            resources {
+//                includedPatterns.addAll(".*\\.dll\$")
+//            }
+//            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.win32.*", "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS", "-H:NativeLinkerOption=/ENTRY:mainCRTStartup", "-H:NativeLinkerOption=" + rootProject.file("icons/icon.res").absolutePath);
+//        }
+        create("LinuxX64") {
+            classpath.setFrom(tasks.jarLinuxX64)
+            resources {
+                includedPatterns.addAll(".*\\.so\$")
+            }
+            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.gtk.*", "-H:Preserve=package=org.eclipse.swt.internal.gtk3.*", "-H:Preserve=package=org.eclipse.swt.internal.gtk4.*")
+        }
+        create("LinuxARM64") {
+            classpath.setFrom(tasks.jarLinuxARM64)
+            resources {
+                includedPatterns.addAll(".*\\.so\$")
+            }
+            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.gtk.*", "-H:Preserve=package=org.eclipse.swt.internal.gtk3.*", "-H:Preserve=package=org.eclipse.swt.internal.gtk4.*")
+        }
+        create("MacosARM64") {
+            classpath.setFrom(tasks.jarMacosARM64)
+            resources {
+                includedPatterns.addAll(".*\\.dylib\$", ".*\\.jnilib\$")
+            }
+            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.cocoa.*")
+            jvmArgs.addAll("-XstartOnFirstThread")
+        }
+        create("MacosX64") {
+            classpath.setFrom(tasks.jarMacosX64)
+            resources {
+                includedPatterns.addAll(".*\\.dylib\$")
+            }
+            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.cocoa.*")
+            jvmArgs.addAll("-XstartOnFirstThread")
+        }
+    }
+}
+
 task dist(type: GradleBuild) {
     buildName "dist"
     startParameter.projectProperties = gradle.startParameter.projectProperties

@@ -18,7 +18,7 @@ import org.xml.sax.InputSource;
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.config.Config;
 import com.pokemmo.launcher.enums.UpdateChannel;
-import com.pokemmo.launcher.ui.MainFrame;
+import com.pokemmo.launcher.ui.awt.MainFrame;
 import com.pokemmo.launcher.util.CryptoUtil;
 import com.pokemmo.launcher.util.Util;
 

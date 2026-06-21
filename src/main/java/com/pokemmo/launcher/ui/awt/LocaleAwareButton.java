@@ -1,4 +1,4 @@
-package com.pokemmo.launcher.ui;
+package com.pokemmo.launcher.ui.awt;
 
 import com.pokemmo.launcher.config.Config;
 

@@ -22,7 +22,7 @@ import com.github.mizosoft.methanol.ProgressTracker;
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.config.Config;
 import com.pokemmo.launcher.enums.OS;
-import com.pokemmo.launcher.ui.MainFrame;
+import com.pokemmo.launcher.ui.awt.MainFrame;
 
 /**
  * @author Desu

@@ -28,7 +28,7 @@ import com.pokemmo.launcher.enums.Arch;
 import com.pokemmo.launcher.enums.OS;
 import com.pokemmo.launcher.enums.PokeMMOLocale;
 import com.pokemmo.launcher.enums.UpdateChannel;
-import com.pokemmo.launcher.ui.MainFrame;
+import com.pokemmo.launcher.ui.awt.MainFrame;
 import com.pokemmo.launcher.updater.FeedManager;
 import com.pokemmo.launcher.updater.UpdateFile;
 import com.pokemmo.launcher.updater.UpdaterSwingWorker;

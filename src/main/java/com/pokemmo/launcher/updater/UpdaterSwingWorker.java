@@ -2,7 +2,7 @@ package com.pokemmo.launcher.updater;
 
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.config.Config;
-import com.pokemmo.launcher.ui.MainFrame;
+import com.pokemmo.launcher.ui.awt.MainFrame;
 
 import javax.swing.*;
 

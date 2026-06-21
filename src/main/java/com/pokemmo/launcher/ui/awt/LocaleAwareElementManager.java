@@ -1,4 +1,4 @@
-package com.pokemmo.launcher.ui;
+package com.pokemmo.launcher.ui.awt;
 
 import java.util.HashSet;
 import java.util.Set;
