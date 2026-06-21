@@ -1,0 +1,208 @@
+{
+  "reflection": [
+    {
+      "type": "org.eclipse.swt.graphics.Device",
+      "jniAccessible": true,
+      "allPublicConstructors": true,
+      "allPublicFields": true,
+      "allPublicMethods": true,
+      "allDeclaredFields": true,
+      "allDeclaredMethods": true,
+      "allDeclaredConstructors": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.SessionManagerDBus",
+      "jniAccessible": true,
+      "allPublicConstructors": true,
+      "allPublicFields": true,
+      "allPublicMethods": true,
+      "allDeclaredFields": true,
+      "allDeclaredMethods": true,
+      "allDeclaredConstructors": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.gtk.GTypeInfo",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.gtk.GdkKeymapKey",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.gtk.GdkRGBA",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.gtk.GdkRectangle",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.gtk.GtkAllocation",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.gtk.GtkBorder",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.gtk.GtkRequisition",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.gtk3.GdkEvent",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.gtk3.GdkEventCrossing",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.gtk3.GdkEventFocus",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.gtk3.GdkEventMotion",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.gtk3.GdkEventWindowState",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.widgets.Control",
+      "jniAccessible": true,
+      "allPublicConstructors": true,
+      "allPublicFields": true,
+      "allPublicMethods": true,
+      "allDeclaredFields": true,
+      "allDeclaredMethods": true,
+      "allDeclaredConstructors": true
+    },
+    {
+      "type": "org.eclipse.swt.widgets.Display",
+      "jniAccessible": true,
+      "allPublicConstructors": true,
+      "allPublicFields": true,
+      "allPublicMethods": true,
+      "allDeclaredFields": true,
+      "allDeclaredMethods": true,
+      "allDeclaredConstructors": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.ACTCTX",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.BITMAP",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.BITMAPINFOHEADER",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.DIBSECTION",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.ICONINFO",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.INITCOMMONCONTROLSEX",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.LOGFONT",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.MONITORINFO",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.MSG",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.NONCLIENTMETRICS",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.PAINTSTRUCT",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.POINT",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.RECT",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.STARTUPINFO",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.TEXTMETRIC",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.WINDOWPOS",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.WNDCLASS",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.eclipse.swt.internal.win32.version.OSVERSIONINFOEX",
+      "jniAccessible": true,
+      "allDeclaredFields": true
+    }
+  ],
+  "resources": [
+    {
+      "glob": "org/eclipse/swt/internal/Library.class"
+    },
+    {
+      "glob": "org/eclipse/swt/internal/*.properties"
+    },
+    {
+      "glob": "org/eclipse/swt/internal/gtk/*.css"
+    },
+    {
+      "bundle": "org.eclipse.swt.internal.SWTMessages"
+    }
+  ]
+}
