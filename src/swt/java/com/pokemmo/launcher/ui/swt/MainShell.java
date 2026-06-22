@@ -84,7 +84,10 @@ public class MainShell implements LauncherUI
 
         // --- Shell ---
         shell = new Shell(display, SWT.SHELL_TRIM);
-        shell.setText(Config.getString("main.title"));
+		if(Launcher.flatpak != null || Launcher.snapcraft != null)
+			shell.setText(Config.getString("main.title"));
+		else
+			shell.setText(Config.getString("updater.title"));
         shell.setSize(480, 280);
         centerShell(shell);
 
@@ -167,7 +170,7 @@ public class MainShell implements LauncherUI
             }
         });
 
-        if (Launcher.HIDE_CONFIG)
+        if (Launcher.UPDATER_MODE)
         {
             configButton.setVisible(false);
         }

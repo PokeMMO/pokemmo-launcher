@@ -74,7 +74,7 @@ public class Launcher
 	 * Whether to silently start the game client (without bringing this UI to the front)
 	 */
 	public static boolean QUICK_AUTOSTART = true;
-	public static boolean HIDE_CONFIG = true;
+	public static boolean UPDATER_MODE = true;
 
 	private LauncherUI launcherUI;
 
@@ -806,7 +806,7 @@ public class Launcher
 			if(arg.equals("--force-ui") || arg.equals("--update"))
 			{
 				QUICK_AUTOSTART = false;
-				HIDE_CONFIG = arg.equals("--update");
+				UPDATER_MODE = arg.equals("--update");
 				continue;
 			}
 

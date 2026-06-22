@@ -235,7 +235,7 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 			launchGame = new LocaleAwareButton("main.launch");
 			launchGame.setEnabled(false);
 
-			if(!Launcher.HIDE_CONFIG)
+			if(!Launcher.UPDATER_MODE)
 				bottom_panel.add(configLauncher, BorderLayout.WEST);
 			bottom_panel.add(launchGame, BorderLayout.EAST);
 		}
@@ -252,7 +252,10 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 		pack();
 		setSize(480, 280);
 		setLocationRelativeTo(null);
-		setTitle(Config.getString("main.title"));
+		if(Launcher.flatpak != null || Launcher.snapcraft != null)
+			setTitle(Config.getString("main.title"));
+		else
+			setTitle(Config.getString("updater.title"));
 		setResizable(false);
 		setVisible(!Launcher.QUICK_AUTOSTART);
 
