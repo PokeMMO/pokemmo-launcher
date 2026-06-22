@@ -130,7 +130,6 @@ public interface LauncherUI
 	/**
 	 * This is kinda dumb, we can maybe deduplicate this class. This just exists to create the impl specific worker
 	 * @param repair
-	 * @param clean
 	 */
-	void createUpdaterWorker(boolean repair, boolean clean);
+	void createUpdaterWorker(boolean repair);
 }

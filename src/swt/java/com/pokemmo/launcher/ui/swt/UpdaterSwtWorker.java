@@ -9,7 +9,7 @@ import com.pokemmo.launcher.config.Config;
 import com.pokemmo.launcher.ui.LauncherUI;
 
 /**
- * SWT replacement for {@link UpdaterSwingWorker}. Uses {@link CompletableFuture#runAsync}
+ * SWT replacement for UpdaterSwingWorker. Uses {@link CompletableFuture#runAsync}
  * instead of {@code SwingWorker}.
  * <p>
  * All UI interactions go through the {@link LauncherUI} interface, which is
@@ -22,15 +22,13 @@ public class UpdaterSwtWorker
     private final Launcher parent;
     private final LauncherUI launcherUI;
     private final boolean repair;
-    private final boolean clean;
     private boolean success = true;
 
-    public UpdaterSwtWorker(Launcher parent, LauncherUI launcherUI, boolean repair, boolean clean)
+    public UpdaterSwtWorker(Launcher parent, LauncherUI launcherUI, boolean repair)
     {
         this.parent = parent;
         this.launcherUI = launcherUI;
         this.repair = repair;
-        this.clean = clean;
     }
 
     public void execute()
@@ -44,35 +42,8 @@ public class UpdaterSwtWorker
 
             try
             {
-                if (clean)
-                {
-//                    Files.walk(Path.of(parent.getPokemmoDir().getAbsolutePath()))
-//                            .sorted(Comparator.reverseOrder())
-//                            .takeWhile(p -> success)
-//                            .forEach(p ->
-//                            {
-//                                try
-//                                {
-//                                    Files.delete(p);
-//                                }
-//                                catch (IOException e)
-//                                {
-//                                    e.printStackTrace();
-//                                    failed.add(e);
-//                                    success = false;
-//                                }
-//                            });
-
-					System.out.println("WOULD CLEAN");
-
-                    // syncExec replaces SwingUtilities.invokeAndWait;
-                    // SWTException (unchecked) replaces InterruptedException / InvocationTargetException
-                    org.eclipse.swt.widgets.Display.getDefault().syncExec(() ->
-                    {
-                        parent.createPokemmoDir();
-                        parent.createSymlinkedDirectories();
-                    });
-                }
+				parent.createPokemmoDir();
+				parent.createSymlinkedDirectories();
             }
             catch (Exception e)
             {

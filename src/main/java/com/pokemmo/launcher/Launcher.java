@@ -203,7 +203,7 @@ public class Launcher
 			}
 
 			createSymlinkedDirectories();
-			launcherUI.createUpdaterWorker(repair, false);
+			launcherUI.createUpdaterWorker(repair);
 		}
 		else if(!isPokemmoValid())
 		{
@@ -226,7 +226,7 @@ public class Launcher
 			}
 
 			// If our declared revision is invalid, repair
-			launcherUI.createUpdaterWorker(repair || (revision <= 0 || (FeedManager.MIN_REVISION > 0 && revision >= FeedManager.MIN_REVISION)), false);
+			launcherUI.createUpdaterWorker(repair || (revision <= 0 || (FeedManager.MIN_REVISION > 0 && revision >= FeedManager.MIN_REVISION)));
 		}
 		else
 		{

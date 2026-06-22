@@ -675,7 +675,7 @@ public class MainShell implements LauncherUI
                         Config.getString("config.title.repair_client")))
                 {
                     configShell.setVisible(false);
-                    new UpdaterSwtWorker(parent, MainShell.this, true, true).execute();
+                    new UpdaterSwtWorker(parent, MainShell.this, true).execute();
                 }
             }
         });
@@ -744,8 +744,8 @@ public class MainShell implements LauncherUI
 	}
 
 	@Override
-	public void createUpdaterWorker(boolean repair, boolean clean)
+	public void createUpdaterWorker(boolean repair)
 	{
-		new UpdaterSwtWorker(parent, this, repair, clean).execute();
+		new UpdaterSwtWorker(parent, this, repair).execute();
 	}
 }

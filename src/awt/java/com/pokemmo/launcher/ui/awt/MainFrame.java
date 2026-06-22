@@ -182,7 +182,7 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 					if(showYesNoDialogue(Config.getString("status.game_repair_prompt"), Config.getString("config.title.repair_client")))
 					{
 						configWindow.setVisible(false);
-						new UpdaterSwingWorker(parent, MainFrame.this, true, true).execute();
+						new UpdaterSwingWorker(parent, MainFrame.this, true).execute();
 					}
 				});
 
@@ -459,8 +459,8 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 	}
 
 	@Override
-	public void createUpdaterWorker(boolean repair, boolean clean)
+	public void createUpdaterWorker(boolean repair)
 	{
-		new UpdaterSwingWorker(parent, this, repair, clean).execute();
+		new UpdaterSwingWorker(parent, this, repair).execute();
 	}
 }

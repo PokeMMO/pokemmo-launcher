@@ -2,7 +2,6 @@ package com.pokemmo.launcher.ui.awt;
 
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.config.Config;
-import com.pokemmo.launcher.ui.awt.MainFrame;
 
 import javax.swing.*;
 
@@ -16,15 +15,14 @@ public class UpdaterSwingWorker extends SwingWorker<Void, Void>
 {
 	private final Launcher parent;
 	private final MainFrame mainFrame;
-	private final boolean repair, clean;
+	private final boolean repair;
 	private boolean success = true;
 
-	public UpdaterSwingWorker(Launcher parent, MainFrame mainFrame, boolean repair, boolean clean)
+	public UpdaterSwingWorker(Launcher parent, MainFrame mainFrame, boolean repair)
 	{
 		this.parent = parent;
 		this.mainFrame = mainFrame;
 		this.repair = repair;
-		this.clean = clean;
 	}
 
 	@Override
@@ -37,31 +35,10 @@ public class UpdaterSwingWorker extends SwingWorker<Void, Void>
 
 		try
 		{
-			if(clean)
-			{
-//				Files.walk(Path.of(parent.getPokemmoDir().getAbsolutePath()))
-//						.sorted(Comparator.reverseOrder())
-//						.takeWhile(p -> success)
-//						.forEach(p -> {
-//							try
-//							{
-//								Files.delete(p);
-//							}
-//							catch(IOException e)
-//							{
-//								e.printStackTrace();
-//								failed.add(e);
-//								success = false;
-//							}
-//						});
-
-				System.out.println("WOULD CLEAN");
-
-				SwingUtilities.invokeAndWait(() -> {
-					parent.createPokemmoDir();
-					parent.createSymlinkedDirectories();
-				});
-			}
+			SwingUtilities.invokeAndWait(() -> {
+				parent.createPokemmoDir();
+				parent.createSymlinkedDirectories();
+			});
 		}
 		catch(Exception e)
 		{
