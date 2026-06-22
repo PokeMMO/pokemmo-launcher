@@ -137,6 +137,10 @@ graalvmNative {
         defaultMode = "standard" // Can be standard, conditional, or direct
     }
 
+    metadataRepository {
+        enabled = false
+    }
+
     binaries {
         all {
             javaLauncher = javaToolchains.launcherFor {
