@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 plugins {
     id 'java'
     id 'application'
@@ -173,13 +175,13 @@ graalvmNative {
             }
             buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.win32.*", "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS", "-H:NativeLinkerOption=/ENTRY:mainCRTStartup", "-H:NativeLinkerOption=" + rootProject.file("icons/icon.res").absolutePath);
         }
-//        create("WindowsARM64") {
-//            classpath.setFrom(tasks.jarWindowsARM64)
-//            resources {
-//                includedPatterns.addAll(".*\\.dll\$")
-//            }
-//            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.win32.*", "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS", "-H:NativeLinkerOption=/ENTRY:mainCRTStartup", "-H:NativeLinkerOption=" + rootProject.file("icons/icon.res").absolutePath);
-//        }
+        create("WindowsARM64") {
+            classpath.setFrom(tasks.jarWindowsARM64)
+            resources {
+                includedPatterns.addAll(".*\\.dll\$")
+            }
+            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.win32.*", "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS", "-H:NativeLinkerOption=/ENTRY:mainCRTStartup", "-H:NativeLinkerOption=" + rootProject.file("icons/icon.res").absolutePath);
+        }
         create("LinuxX64") {
             classpath.setFrom(tasks.jarLinuxX64)
             resources {
@@ -210,6 +212,29 @@ graalvmNative {
             buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.cocoa.*")
             jvmArgs.addAll("-XstartOnFirstThread")
         }
+    }
+}
+
+task nativeCompileCI()
+{
+    def isARM = System.getProperty("os.arch").startsWith("arm") || System.getProperty("os.arch").startsWith("aarch64");
+    if(Os.isFamily(Os.FAMILY_WINDOWS)) {
+        if(isARM)
+            dependsOn "nativeWindowsARM64Compile"
+        else
+            dependsOn "nativeWindowsX64Compile"
+    }
+    else if(Os.isFamily(Os.FAMILY_MAC)) {
+        if(isARM)
+            dependsOn "nativeMacosARM64Compile"
+        else
+            dependsOn "nativeMacosX64Compile"
+    }
+    else if(Os.isFamily(Os.FAMILY_UNIX)) {
+        if(isARM)
+            dependsOn "nativeLinuxARM64Compile"
+        else
+            dependsOn "nativeLinuxX64Compile"
     }
 }
 
