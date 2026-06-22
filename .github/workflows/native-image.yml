@@ -45,12 +45,12 @@ jobs:
           mkdir -p out/macos/x64
           #mkdir -p out/windows/arm64
           mkdir -p out/windows/x64
-          cp build/native/nativeWindowsX64Compile/Launcher.exe out/windows/x64/PokeMMO-Updater.exe
-          #cp build/native/nativeWindowsARM64Compile/Launcher.exe out/windows/arm64/PokeMMO-Updater.exe
-          cp build/native/nativeMacosX64Compile/Launcher out/macos/x64/PokeMMO-Updater
-          cp build/native/nativeMacosARM64Compile/Launcher out/macos/arm64/PokeMMO-Updater
-          cp build/native/nativeLinuxX64Compile/Launcher out/linux/x64/PokeMMO-Updater
-          cp build/native/nativeLinuxARM64Compile/Launcher out/linux/arm64/PokeMMO-Updater
+          cp */nativeWindowsX64Compile/Launcher.exe out/windows/x64/PokeMMO-Updater.exe
+          #cp */nativeWindowsARM64Compile/Launcher.exe out/windows/arm64/PokeMMO-Updater.exe
+          cp */nativeMacosX64Compile/Launcher out/macos/x64/PokeMMO-Updater
+          cp */nativeMacosARM64Compile/Launcher out/macos/arm64/PokeMMO-Updater
+          cp */nativeLinuxX64Compile/Launcher out/linux/x64/PokeMMO-Updater
+          cp */nativeLinuxARM64Compile/Launcher out/linux/arm64/PokeMMO-Updater
       - name: Upload Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
         with:
