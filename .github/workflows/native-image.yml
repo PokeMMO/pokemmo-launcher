@@ -9,7 +9,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-26-intel, windows-latest, windows-11-arm]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-26-intel, windows-latest] #, windows-11-arm]
     steps:
       - uses: actions/checkout@v4
       - uses: graalvm/setup-graalvm@v1.5.6
@@ -42,10 +42,10 @@ jobs:
           mkdir -p out/linux/x64
           mkdir -p out/macos/arm64
           mkdir -p out/macos/x64
-          mkdir -p out/windows/arm64
+          #mkdir -p out/windows/arm64
           mkdir -p out/windows/x64
           cp build/native/nativeWindowsX64Compile/Launcher.exe out/windows/x64/PokeMMO-Updater.exe
-          cp build/native/nativeWindowsARM64Compile/Launcher.exe out/windows/arm64/PokeMMO-Updater.exe
+          #cp build/native/nativeWindowsARM64Compile/Launcher.exe out/windows/arm64/PokeMMO-Updater.exe
           cp build/native/nativeMacosX64Compile/Launcher out/macos/x64/PokeMMO-Updater
           cp build/native/nativeMacosARM64Compile/Launcher out/macos/arm64/PokeMMO-Updater
           cp build/native/nativeLinuxX64Compile/Launcher out/linux/x64/PokeMMO-Updater
