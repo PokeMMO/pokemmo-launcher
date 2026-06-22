@@ -16,6 +16,7 @@ jobs:
         with:
           java-version: '25'      # See 'Options' for more details
           distribution: 'graalvm-community' # See 'Supported distributions' for available options
+          components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Example step
         run: |
