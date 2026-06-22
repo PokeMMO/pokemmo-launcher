@@ -211,7 +211,7 @@ graalvmNative {
         create("MacosX64") {
             classpath.setFrom(tasks.jarMacosX64)
             resources {
-                includedPatterns.addAll(".*\\.dylib\$")
+                includedPatterns.addAll(".*\\.dylib\$", ".*\\.jnilib\$")
             }
             buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.cocoa.*")
             jvmArgs.addAll("-XstartOnFirstThread")
