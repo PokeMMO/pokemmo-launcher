@@ -171,6 +171,8 @@ public class Launcher
 
 		System.out.println("Running Launcher for channel " + Config.UPDATE_CHANNEL);
 
+		//TODO: Show UI before loading if --update ???
+
 		checkForRunning();
 		downloadFeeds();
 
