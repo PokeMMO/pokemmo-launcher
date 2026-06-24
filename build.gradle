@@ -47,8 +47,8 @@ dependencies {
     nativesMacosARM64 'org.eclipse.platform:org.eclipse.swt.cocoa.macosx.aarch64:3.133.0'
 }
 
-compileJava {
-    options.release = 21
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
 }
 
 java {
