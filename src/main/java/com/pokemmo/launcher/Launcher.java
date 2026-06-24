@@ -143,32 +143,6 @@ public class Launcher
 		launcherUI = createLauncherUI();
 		launcherUI.open();
 
-		String version = System.getProperty("java.specification.version");
-
-		int majorver;
-		try
-		{
-			majorver = Integer.parseInt(version);
-		}
-		catch(NumberFormatException e)
-		{
-			try
-			{
-				majorver = Integer.parseInt(version.split("\\.")[1]);
-			}
-			catch(Exception e2)
-			{
-				majorver = -1;
-			}
-		}
-
-		if(majorver < 21)
-		{
-			launcherUI.showError(Config.getString("error.incompatible_jvm", Config.getString("status.title.failed_startup")), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
-			launcherUI.enterEventLoop();
-			return;
-		}
-
 		System.out.println("Running Launcher for channel " + Config.UPDATE_CHANNEL);
 
 		//TODO: Show UI before loading if --update ???
@@ -190,11 +164,14 @@ public class Launcher
 			return;
 		}
 
-		if(!pokemmoDir.setReadable(true) || !pokemmoDir.setWritable(true) || !pokemmoDir.setExecutable(true))
+		if(OS.get() != OS.WINDOWS)
 		{
-			launcherUI.showError(Config.getString("error.dir_not_accessible", pokemmoDir, "DIR_2"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
-			launcherUI.enterEventLoop();
-			return;
+			if(!pokemmoDir.setReadable(true) || !pokemmoDir.setWritable(true) || !pokemmoDir.setExecutable(true))
+			{
+				launcherUI.showError(Config.getString("error.dir_not_accessible", pokemmoDir, "DIR_2"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+				launcherUI.enterEventLoop();
+				return;
+			}
 		}
 
 		if(firstRun)
