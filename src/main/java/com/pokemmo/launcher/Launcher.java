@@ -305,7 +305,7 @@ public class Launcher
 		if(isJava)
 		{
 			System.out.println("Launching legacy java...");
-			File java = JREUtil.findJava();
+			File java = JREUtil.findJava(pokemmoDir);
 			if(java == null || !java.exists() || !java.canExecute())
 			{
 				launcherUI.showError(Config.getString("error.incompatible_jvm", Config.getString("status.title.failed_startup")), "", () -> System.exit(EXIT_CODE_IO_FAILURE));

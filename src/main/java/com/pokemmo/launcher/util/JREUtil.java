@@ -14,7 +14,7 @@ import com.pokemmo.launcher.enums.OS;
  */
 public class JREUtil
 {
-	public static File findJava()
+	public static File findJava(File pokemmoDir)
 	{
 		File java;
 		if(System.getProperty("java.home") != null)
@@ -36,7 +36,7 @@ public class JREUtil
 		}
 
 		//Bundled
-		java = new File("bin" + File.separator + "java" + (OS.get() == OS.WINDOWS ? ".exe" : ""));
+		java = new File(pokemmoDir, "bin" + File.separator + "java" + (OS.get() == OS.WINDOWS ? ".exe" : ""));
 		if(java.exists() && java.isFile() && java.canExecute())
 		{
 			System.out.println("Found java from bundled jre: " + java.getAbsolutePath());
