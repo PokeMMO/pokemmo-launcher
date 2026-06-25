@@ -60,6 +60,8 @@ public class JREUtil
 			System.out.println("Found java in PATH: " + java.getAbsolutePath());
 			return java;
 		}
+
+		System.out.println("Could not find java...");
 		return null;
 	}
 

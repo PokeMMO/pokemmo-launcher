@@ -287,20 +287,20 @@ public class Launcher
 		if(OS.get() == OS.WINDOWS)
 		{
 			if(Arch.get() == Arch.X64)
-				pokemmoExecutable = new File("PokeMMO.exe");
+				pokemmoExecutable = new File(pokemmoDir, "PokeMMO.exe");
 			else
-				pokemmoExecutable = new File("bin" + File.separator + OS.get().getName() + File.separator + Arch.get().getName() + File.separator + "PokeMMO.exe");
+				pokemmoExecutable = new File(pokemmoDir, "bin" + File.separator + OS.get().getName() + File.separator + Arch.get().getName() + File.separator + "PokeMMO.exe");
 		}
 		else
 		{
-			pokemmoExecutable = new File("bin" + File.separator + OS.get().getName() + File.separator + Arch.get().getName() + File.separator + "PokeMMO");
+			pokemmoExecutable = new File(pokemmoDir, "bin" + File.separator + OS.get().getName() + File.separator + Arch.get().getName() + File.separator + "PokeMMO");
 		}
 
 		boolean isJava = false;
 
 		//If our native executable doesn't exist or Winx64 check if PokeMMO.exe exists and is a jar
 		if(!pokemmoExecutable.exists() || (OS.get() == OS.WINDOWS && Arch.get() == Arch.X64))
-			isJava = JREUtil.isPokeMMOJar(new File("PokeMMO.exe"));
+			isJava = JREUtil.isPokeMMOJar(new File(pokemmoDir, "PokeMMO.exe"));
 
 		if(isJava)
 		{
@@ -308,7 +308,7 @@ public class Launcher
 			File java = JREUtil.findJava();
 			if(java == null || !java.exists() || !java.canExecute())
 			{
-				launcherUI.showError(Config.getString("status.failed_startup"), Config.getString("status.title.failed_startup"), () -> System.exit(EXIT_CODE_IO_FAILURE));
+				launcherUI.showError(Config.getString("error.incompatible_jvm", Config.getString("status.title.failed_startup")), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
 				return;
 			}
 
