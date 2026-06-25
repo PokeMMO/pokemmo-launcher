@@ -116,6 +116,10 @@ public class FeedManager
 						String sanitized = Util.sanitize(current_directory, file.getAttribute("name"));
 						int size = Integer.parseInt(file.getAttribute("size"));
 
+						//Legacy options
+						if(!file.getAttribute("option_name").isEmpty())
+							continue;
+
 						if(sanitized != null && size > 0)
 						{
 							UpdateFile f = new UpdateFile(sanitized, file.getAttribute("sha256"), size, Boolean.parseBoolean(file.getAttribute("only_if_not_exists")));
