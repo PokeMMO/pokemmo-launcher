@@ -55,7 +55,7 @@ public class JREUtil
 
 		//try to brute force from path
 		java = findInPath("java");
-		if(java.exists() && java.isFile() && java.canExecute())
+		if(java != null && java.exists() && java.isFile() && java.canExecute())
 		{
 			System.out.println("Found java in PATH: " + java.getAbsolutePath());
 			return java;
