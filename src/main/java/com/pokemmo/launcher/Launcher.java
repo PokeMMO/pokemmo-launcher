@@ -898,6 +898,7 @@ public class Launcher
 
 			if(arg.equals("-repair:true") || arg.equals("--repair"))
 			{
+				QUICK_AUTOSTART = false;
 				repair = true;
 				continue;
 			}
