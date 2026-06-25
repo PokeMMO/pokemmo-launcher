@@ -31,6 +31,7 @@ import com.pokemmo.launcher.enums.UpdateChannel;
 import com.pokemmo.launcher.ui.LauncherUI;
 import com.pokemmo.launcher.updater.FeedManager;
 import com.pokemmo.launcher.updater.UpdateFile;
+import com.pokemmo.launcher.util.JREUtil;
 import com.pokemmo.launcher.util.Util;
 
 /**
@@ -282,16 +283,58 @@ public class Launcher
 	{
 		List<String> args = new ArrayList<>();
 
+		File pokemmoExecutable;
 		if(OS.get() == OS.WINDOWS)
 		{
 			if(Arch.get() == Arch.X64)
-				args.add("PokeMMO.exe");
+				pokemmoExecutable = new File("PokeMMO.exe");
 			else
-				args.add("bin" + File.separator + OS.get().getName() + File.separator + Arch.get().getName() + File.separator + "PokeMMO.exe");
+				pokemmoExecutable = new File("bin" + File.separator + OS.get().getName() + File.separator + Arch.get().getName() + File.separator + "PokeMMO.exe");
 		}
 		else
 		{
-			args.add("bin" + File.separator + OS.get().getName() + File.separator + Arch.get().getName() + File.separator + "PokeMMO");
+			pokemmoExecutable = new File("bin" + File.separator + OS.get().getName() + File.separator + Arch.get().getName() + File.separator + "PokeMMO");
+		}
+
+		boolean isJava = false;
+
+		//If our native executable doesn't exist or Winx64 check if PokeMMO.exe exists and is a jar
+		if(!pokemmoExecutable.exists() || (OS.get() == OS.WINDOWS && Arch.get() == Arch.X64))
+			isJava = JREUtil.isPokeMMOJar(new File("PokeMMO.exe"));
+
+		if(isJava)
+		{
+			System.out.println("Launching legacy java...");
+			File java = JREUtil.findJava();
+			System.out.println("Found java " + java);
+			if(java == null || !java.exists() || !java.canExecute())
+			{
+				launcherUI.showError(Config.getString("status.failed_startup"), Config.getString("status.title.failed_startup"), () -> System.exit(EXIT_CODE_IO_FAILURE));
+				return;
+			}
+
+			args.add(java.getAbsolutePath());
+			args.add("-XX:+IgnoreUnrecognizedVMOptions");
+			args.add("-XX:+UseZGC");
+			args.add("-XX:+ZGenerational");
+			args.add("-XX:+UnlockDiagnosticVMOptions");
+			args.add("-XX:-UseAESCTRIntrinsics");
+			args.add("-XX:-UseAESIntrinsics");
+			args.add("-Dfile.encoding=UTF-8");
+
+			args.addAll(Arrays.asList("-cp", "PokeMMO.exe", "com.pokeemu.client.Client"));
+		}
+		else
+		{
+			System.out.println("Launching native PokeMMO...");
+			if(!pokemmoExecutable.exists())
+			{
+				launcherUI.showError(Config.getString("status.failed_startup"), Config.getString("status.title.failed_startup"), () -> System.exit(EXIT_CODE_IO_FAILURE));
+				return;
+			}
+			args.add(pokemmoExecutable.getAbsolutePath());
+			args.add("-Xms192M");
+			args.add("-Xmx" + Config.HARD_MAX_MEMORY_MB + "M");
 		}
 
 		ProcessBuilder pb = new ProcessBuilder(args);
