@@ -306,7 +306,6 @@ public class Launcher
 		{
 			System.out.println("Launching legacy java...");
 			File java = JREUtil.findJava();
-			System.out.println("Found java " + java);
 			if(java == null || !java.exists() || !java.canExecute())
 			{
 				launcherUI.showError(Config.getString("status.failed_startup"), Config.getString("status.title.failed_startup"), () -> System.exit(EXIT_CODE_IO_FAILURE));
