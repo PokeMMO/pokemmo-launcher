@@ -28,4 +28,4 @@ for lang in zh fr de it ja ko ptbr es fil; do
 	curl -H "Authorization: Token $TL_APIKEY" https://translate.pokemmo.com/api/translations/client/unix-installer/$TL_LANGCODE/file/ -o $OUTPUT_FILENAME
 done
 
-opencc -i MessagesBundle_zh.properties -o MessagesBundle_zh_TW.properties -c /usr/share/opencc/s2twp.json
+opencc -i MessagesBundle_zh.properties -o MessagesBundle_zh_Hant.properties -c /usr/share/opencc/s2twp.json
