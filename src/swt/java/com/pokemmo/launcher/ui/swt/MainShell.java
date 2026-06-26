@@ -73,15 +73,6 @@ public class MainShell implements LauncherUI
         this.parent = parent;
 		this.display = new Display();
 
-		// Shutdown hook ensures display.dispose() after System.exit()
-		Runtime.getRuntime().addShutdownHook(new Thread(() ->
-		{
-			if (display != null && !display.isDisposed())
-			{
-				display.dispose();
-			}
-		}));
-
         // --- Shell ---
         shell = new Shell(display, SWT.SHELL_TRIM);
 		if(Launcher.flatpak != null || Launcher.snapcraft != null)
@@ -476,6 +467,10 @@ public class MainShell implements LauncherUI
         if (shell != null && !shell.isDisposed())
         {
             shell.dispose();
+        }
+        if (display != null && !display.isDisposed())
+        {
+            display.dispose();
         }
     }
 

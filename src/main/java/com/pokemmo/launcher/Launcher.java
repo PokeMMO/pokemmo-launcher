@@ -365,6 +365,7 @@ public class Launcher
 			return;
 		}
 
+		launcherUI.dispose();
 		System.exit(0);
 	}
 
@@ -433,6 +434,7 @@ public class Launcher
 			}
 			else
 			{
+				launcherUI.dispose();
 				System.exit(EXIT_CODE_SUCCESS);
 			}
 		}
