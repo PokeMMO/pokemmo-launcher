@@ -1,6 +1,4 @@
-# PokeMMO Unix Installer
-
-[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/pokemmo)
+# PokeMMO Launcher
 
 This program manages:
 
@@ -27,7 +25,7 @@ This program is built with [[Gradle]](https://gradle.org/)
 
 To build:
 
-- `./gradlew jar`
+- `./gradlew nativeLinuxX64Compile`
 
 To run:
 
