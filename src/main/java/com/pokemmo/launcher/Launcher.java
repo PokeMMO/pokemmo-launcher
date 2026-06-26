@@ -315,7 +315,6 @@ public class Launcher
 			args.add(java.getAbsolutePath());
 			args.add("-XX:+IgnoreUnrecognizedVMOptions");
 			args.add("-XX:+UseZGC");
-			args.add("-XX:+ZGenerational");
 			args.add("-XX:+UnlockDiagnosticVMOptions");
 			args.add("-XX:-UseAESCTRIntrinsics");
 			args.add("-XX:-UseAESIntrinsics");
