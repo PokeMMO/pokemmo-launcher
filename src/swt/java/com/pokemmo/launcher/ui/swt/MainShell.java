@@ -3,20 +3,13 @@ package com.pokemmo.launcher.ui.swt;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.pokemmo.launcher.Launcher;
-import com.pokemmo.launcher.config.Config;
-import com.pokemmo.launcher.enums.PokeMMOLocale;
-import com.pokemmo.launcher.enums.UpdateChannel;
-import com.pokemmo.launcher.ui.LauncherUI;
-import com.pokemmo.launcher.ui.shared.UiBridge;
-import com.pokemmo.launcher.util.Util;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -30,6 +23,14 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
+
+import com.pokemmo.launcher.Launcher;
+import com.pokemmo.launcher.config.Config;
+import com.pokemmo.launcher.enums.PokeMMOLocale;
+import com.pokemmo.launcher.enums.UpdateChannel;
+import com.pokemmo.launcher.ui.LauncherUI;
+import com.pokemmo.launcher.ui.shared.UiBridge;
+import com.pokemmo.launcher.util.Util;
 
 /**
  * SWT main window implementing {@link LauncherUI}.
@@ -63,6 +64,7 @@ public class MainShell implements LauncherUI
 
     // --- Resource tracking ---
     private Font monospacedFont;
+    private Image[] shellIcons;
     private final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
     /**
@@ -79,6 +81,17 @@ public class MainShell implements LauncherUI
 			shell.setText(Config.getString("main.title"));
 		else
 			shell.setText(Config.getString("updater.title"));
+
+        try
+        {
+            shellIcons = SwtIconLoader.getImages(display);
+            shell.setImages(shellIcons);
+        }
+        catch (Exception e)
+        {
+            System.err.println("Failed to load application icon: " + e.getMessage());
+        }
+
         shell.setSize(480, 280);
         centerShell(shell);
 
@@ -458,6 +471,15 @@ public class MainShell implements LauncherUI
         {
             monospacedFont.dispose();
             monospacedFont = null;
+        }
+        if (shellIcons != null)
+        {
+            for (Image img : shellIcons)
+            {
+                if (!img.isDisposed())
+                    img.dispose();
+            }
+            shellIcons = null;
         }
         executorService.shutdown();
         if (configShell != null && !configShell.isDisposed())

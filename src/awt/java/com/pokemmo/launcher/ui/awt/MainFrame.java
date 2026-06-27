@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -257,6 +258,17 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 		else
 			setTitle(Config.getString("updater.title"));
 		setResizable(false);
+
+		try
+		{
+			List<Image> icons = AwtIconLoader.getImages();
+			setIconImages(icons);
+		}
+		catch (Exception e)
+		{
+			System.err.println("Failed to load application icon: " + e.getMessage());
+		}
+
 		setVisible(!Launcher.QUICK_AUTOSTART);
 
 		// Register this MainFrame as the UI bridge error callback

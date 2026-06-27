@@ -171,6 +171,9 @@ graalvmNative {
             jvmArgs.addAll("-Dfile.encoding=UTF8")
             sharedLibrary = false
             useFatJar = true
+            resources {
+                includedPatterns.addAll(".*\\.png\$")
+            }
         }
         create("WindowsX64") {
             classpath.setFrom(tasks.jarWindowsX64)
