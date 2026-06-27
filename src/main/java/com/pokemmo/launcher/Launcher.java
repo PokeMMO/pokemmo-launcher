@@ -64,7 +64,7 @@ import com.pokemmo.launcher.util.Util;
  */
 public class Launcher
 {
-	public static final int INSTALLER_VERSION = 21;
+	public static final String INSTALLER_VERSION = "4.0a-beta2";
 
 	public static final int EXIT_CODE_SUCCESS = 0;
 	public static final int EXIT_CODE_NETWORK_FAILURE = 1;
@@ -341,7 +341,7 @@ public class Launcher
 
 		// Used by KDE to xdg-portal file dialogues
 		pb.environment().put("GTK_USE_PORTALS", "1");
-		pb.environment().put("POKEMMO_UNIX_LAUNCHER_VER", Integer.toString(INSTALLER_VERSION));
+		pb.environment().put("POKEMMO_UNIX_LAUNCHER_VER", INSTALLER_VERSION);
 
 		if(snapcraft != null)
 		{
@@ -829,6 +829,12 @@ public class Launcher
 			{
 				QUICK_AUTOSTART = false;
 				UPDATER_MODE = arg.equals("--update");
+				continue;
+			}
+
+			if(arg.equals("--launch"))
+			{
+				UPDATER_MODE = false;
 				continue;
 			}
 
