@@ -142,11 +142,10 @@ public class Launcher
 
 
 		launcherUI = createLauncherUI();
-		launcherUI.open();
+		if(!Launcher.QUICK_AUTOSTART)
+			displayLauncherUI();
 
 		System.out.println("Running Launcher for channel " + Config.UPDATE_CHANNEL);
-
-		//TODO: Show UI before loading if --update ???
 
 		checkForRunning();
 		downloadFeeds();
@@ -177,20 +176,14 @@ public class Launcher
 
 		if(firstRun)
 		{
-			if(QUICK_AUTOSTART)
-			{
-				displayLauncherUI();
-			}
+			displayLauncherUI();
 
 			createSymlinkedDirectories();
 			launcherUI.createUpdaterWorker(repair);
 		}
 		else if(!isPokemmoValid())
 		{
-			if(QUICK_AUTOSTART)
-			{
-				displayLauncherUI();
-			}
+			displayLauncherUI();
 
 			int revision = -1;
 			if(revisionFile.exists() && revisionFile.isFile())
@@ -260,7 +253,7 @@ public class Launcher
 	private void displayLauncherUI()
 	{
 		QUICK_AUTOSTART = false;
-		launcherUI.setVisible(true);
+		launcherUI.open();
 	}
 
 	public void launchGame()

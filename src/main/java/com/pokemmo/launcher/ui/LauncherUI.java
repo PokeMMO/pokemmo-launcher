@@ -12,7 +12,6 @@ package com.pokemmo.launcher.ui;
  */
 public interface LauncherUI
 {
-
 	/**
 	 * If necessary calls open.
 	 */

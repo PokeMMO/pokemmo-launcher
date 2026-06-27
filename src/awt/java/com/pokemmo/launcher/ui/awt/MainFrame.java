@@ -269,10 +269,14 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 			System.err.println("Failed to load application icon: " + e.getMessage());
 		}
 
-		setVisible(!Launcher.QUICK_AUTOSTART);
-
 		// Register this MainFrame as the UI bridge error callback
 		UiBridge.setErrorCallback(this::showError);
+	}
+
+	@Override
+	public void open()
+	{
+		setVisible(true);
 	}
 
 	@Override
