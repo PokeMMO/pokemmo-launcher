@@ -6,6 +6,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -481,5 +484,21 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 	public void createUpdaterWorker(boolean repair)
 	{
 		new UpdaterSwingWorker(parent, this, repair).execute();
+	}
+
+	@Override
+	public void openURL(String url)
+	{
+		try
+		{
+			if(Desktop.isDesktopSupported())
+			{
+				Desktop.getDesktop().browse(new URI(url));
+			}
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 }

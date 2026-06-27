@@ -36,6 +36,7 @@ public class FeedManager
 	 * Min client revision allowed. If lower, will force update.
 	 */
 	public static int MIN_REVISION = 0;
+	public static int MIN_LAUNCHER_VERSION = 0;
 	public static boolean SUCCESSFUL = false;
 	private static final List<UpdateFile> files = new ArrayList<>();
 
@@ -105,6 +106,31 @@ public class FeedManager
 				doc = db.parse(is);
 
 				Element update_feed = (Element) doc.getElementsByTagName("update_feed").item(0);
+
+				if(update_feed.hasAttribute("min_launcher_version"))
+				{
+					try
+					{
+						MIN_LAUNCHER_VERSION = Integer.parseInt(update_feed.getAttribute("min_launcher_version"));
+					}
+					catch(Exception e)
+					{
+						// Don't care
+					}
+				}
+
+				//Only use if min_launcher_version above failed
+				if(MIN_LAUNCHER_VERSION < 1 && update_feed.hasAttribute("min_osx_installer_version"))
+				{
+					try
+					{
+						MIN_LAUNCHER_VERSION = Integer.parseInt(update_feed.getAttribute("min_osx_installer_version"));
+					}
+					catch(Exception e)
+					{
+						// Don't care
+					}
+				}
 
 				NodeList filesNodeList = update_feed.getElementsByTagName("file");
 				for(int x = 0; x < filesNodeList.getLength(); x++)

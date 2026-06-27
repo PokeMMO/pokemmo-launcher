@@ -131,4 +131,9 @@ public interface LauncherUI
 	 * @param repair
 	 */
 	void createUpdaterWorker(boolean repair);
+
+	default void openURL(String url)
+	{
+
+	}
 }

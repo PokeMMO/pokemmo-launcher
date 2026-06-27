@@ -64,7 +64,8 @@ import com.pokemmo.launcher.util.Util;
  */
 public class Launcher
 {
-	public static final String INSTALLER_VERSION = "4.0a-beta2";
+	public static final int INSTALLER_VERSION = 30;
+	public static final String INSTALLER_VERSION_CODE = "4.0a-beta2";
 
 	public static final int EXIT_CODE_SUCCESS = 0;
 	public static final int EXIT_CODE_NETWORK_FAILURE = 1;
@@ -110,15 +111,15 @@ public class Launcher
 
 		if(snapcraft != null)
 		{
-			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION+") (Snapcraft)";
+			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION_CODE+") (Snapcraft)";
 		}
 		else if (flatpak != null)
 		{
-			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION+") (Flatpak)";
+			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION_CODE+") (Flatpak)";
 		}
 		else
 		{
-			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION+")";
+			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION_CODE+")";
 		}
 	}
 
@@ -145,10 +146,18 @@ public class Launcher
 		if(!Launcher.ENABLE_HEADLESS_LAUNCH)
 			displayLauncherUI();
 
-		System.out.println("Running Launcher for channel " + Config.UPDATE_CHANNEL);
+		System.out.println("=================================================");
+		System.out.println("Running Launcher");
+		System.out.println("Channel: " + Config.UPDATE_CHANNEL);
+		System.out.println("OS: " + OS.get());
+		System.out.println("Arch: " + Arch.get());
+		System.out.println("PokeMMO Dir: " + pokemmoDir.getAbsolutePath());
+		System.out.println("Workding Dir: " + System.getProperty("user.dir"));
+		System.out.println("=================================================");
 
 		checkForRunning();
-		downloadFeeds();
+		if(!downloadFeeds())
+			return;
 
 		File revisionFile = new File(pokemmoDir, "revision.txt");
 		if(!pokemmoDir.exists() || !revisionFile.exists())
@@ -307,11 +316,19 @@ public class Launcher
 
 			args.add(java.getAbsolutePath());
 			args.add("-XX:+IgnoreUnrecognizedVMOptions");
+			args.add("-Dfile.encoding=UTF-8");
 			args.add("-XX:+UseZGC");
 			args.add("-XX:+UnlockDiagnosticVMOptions");
 			args.add("-XX:-UseAESCTRIntrinsics");
 			args.add("-XX:-UseAESIntrinsics");
 			args.add("-Dfile.encoding=UTF-8");
+
+			if(OS.get() == OS.MAC)
+			{
+				args.add("-XstartOnFirstThread");
+				args.add("-Dorg.lwjgl.system.allocator=system");
+				args.add("-Xdock:name=PokeMMO");
+			}
 
 			args.addAll(Arrays.asList("-cp", "PokeMMO.exe", "com.pokeemu.client.Client"));
 		}
@@ -334,7 +351,7 @@ public class Launcher
 
 		// Used by KDE to xdg-portal file dialogues
 		pb.environment().put("GTK_USE_PORTALS", "1");
-		pb.environment().put("POKEMMO_UNIX_LAUNCHER_VER", INSTALLER_VERSION);
+		pb.environment().put("POKEMMO_LAUNCHER_VER", INSTALLER_VERSION_CODE);
 
 		if(snapcraft != null)
 		{
@@ -370,8 +387,6 @@ public class Launcher
 		ProcessHandle processHandle = ProcessHandle.current();
 		ProcessHandle.Info processInfo = processHandle.info();
 
-		System.out.println("Started launcher at " + System.getProperty("user.dir"));
-
 		if(processInfo.command().isEmpty())
 		{
 			// Something really bad happened. Our j11 process API doesn't work. Bail out to prevent other issues.
@@ -380,9 +395,6 @@ public class Launcher
 		}
 
 		String launcherPath = processInfo.command().get();
-
-		System.out.println("pokemmoDir: " + pokemmoDir.getAbsolutePath());
-		System.out.println("launcherPath: " + launcherPath);
 
 		List<ProcessHandle> destroyables = new ArrayList<>();
 		ProcessHandle.allProcesses().filter(ProcessHandle::isAlive).forEach(f ->
@@ -729,7 +741,7 @@ public class Launcher
 		}
 	}
 
-	private void downloadFeeds()
+	private boolean downloadFeeds()
 	{
 		launcherUI.setStatus("status.networking.load", 0);
 		FeedManager.load(launcherUI);
@@ -737,7 +749,19 @@ public class Launcher
 		if(!FeedManager.SUCCESSFUL)
 		{
 			launcherUI.showErrorWithStacktrace(Config.getString("status.networking.feed_load_failed"), Config.getString("status.title.network_failure"), "UPDATE_FEED_FAILURE_1", () -> System.exit(EXIT_CODE_NETWORK_FAILURE));
+			return false;
 		}
+
+		if(FeedManager.MIN_LAUNCHER_VERSION > INSTALLER_VERSION)
+		{
+			launcherUI.showMessage(Config.getString(OS.get() == OS.MAC ? "status.update_available_mac" : "status.update_available"), Config.getString("status.title.update_available"), () ->
+			{
+				launcherUI.openURL("https://pokemmo.com/downloads/mac/");
+				System.exit(EXIT_CODE_UNK_FAILURE);
+			});
+			return false;
+		}
+		return true;
 	}
 
 	private File getFile(String path)
@@ -884,6 +908,20 @@ public class Launcher
 					PokeMMOLocale locale = PokeMMOLocale.getFromString(queue.poll());
 					Config.changeLocale(locale);
 				}
+				continue;
+			}
+
+			if(arg.equals("--os"))
+			{
+				if(!queue.isEmpty())
+					OS.CURRENT = OS.getByName(queue.poll());
+				continue;
+			}
+
+			if(arg.equals("--arch"))
+			{
+				if(!queue.isEmpty())
+					Arch.CURRENT = Arch.getByName(queue.poll());
 				continue;
 			}
 
