@@ -92,7 +92,7 @@ public class MainShell implements LauncherUI
             System.err.println("Failed to load application icon: " + e.getMessage());
         }
 
-        shell.setSize(480, 280);
+        shell.setSize(600, 400);
         centerShell(shell);
 
         GridLayout shellLayout = new GridLayout(1, false);

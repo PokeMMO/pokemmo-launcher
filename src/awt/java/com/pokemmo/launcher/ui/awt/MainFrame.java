@@ -251,7 +251,7 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 		}
 
 		pack();
-		setSize(480, 280);
+		setSize(600, 400);
 		setLocationRelativeTo(null);
 		if(Launcher.flatpak != null || Launcher.snapcraft != null)
 			setTitle(Config.getString("main.title"));
