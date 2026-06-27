@@ -42,6 +42,8 @@ public class FeedManager
 
 	public static void load(LauncherUI launcherUI)
 	{
+		files.clear();
+
 		UpdateChannel channel = Config.UPDATE_CHANNEL;
 
 		String sig_format = "SHA256withRSA";
@@ -177,11 +179,6 @@ public class FeedManager
 				launcherUI.showInfo(Config.getString("status.networking.feed_load_failed_alt", mirror));
 				failures.add(e);
 			}
-		}
-
-		if(!SUCCESSFUL)
-		{
-			launcherUI.showErrorWithStacktrace(Config.getString("status.networking.feed_load_failed"), Config.getString("status.title.fatal_error"), failures.toArray(new Throwable[0]), () -> System.exit(Launcher.EXIT_CODE_NETWORK_FAILURE));
 		}
 	}
 

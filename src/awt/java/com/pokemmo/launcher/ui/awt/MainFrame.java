@@ -148,9 +148,8 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 				updateChannelList.setSelectedItem(Config.UPDATE_CHANNEL);
 				updateChannelList.addActionListener((event) -> {
 					Config.UPDATE_CHANNEL = (UpdateChannel) updateChannelList.getSelectedItem();
-					parent.updatePokemmoDirectory();
-					parent.doUpdate(false);
 					Config.save();
+					System.exit(Launcher.EXIT_CODE_SUCCESS); //TODO: Make this work without restart
 				});
 
 				updateChannelList.setEnabled(UpdateChannel.ENABLED_UPDATE_CHANNELS.length > 1);

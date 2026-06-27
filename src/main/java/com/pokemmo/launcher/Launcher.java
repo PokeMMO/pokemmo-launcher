@@ -114,38 +114,40 @@ public class Launcher
 	public static Methanol httpClient;
 	public static final String httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION_CODE+")";
 
-	public void updatePokemmoDirectory()
+	private void run(boolean repair)
 	{
 		userHome = new File(System.getProperty("user.home"));
-
 		//Use current working directory if not overridden
 		pokemmoDir = new File(".").toPath().toAbsolutePath().normalize().toFile();
 
 		baseDir = pokemmoDir;
 
-		if(SandboxType.get() == SandboxType.MACOS_APP)
+		if(SandboxType.get() != null)
 		{
-			baseDir = new File(userHome, "/Library/Application Support/com.pokeemu.macos");
-			pokemmoDir = new File(baseDir, "pokemmo-client-" + Config.UPDATE_CHANNEL.toString());
+			if(SandboxType.get() == SandboxType.MACOS_APP)
+			{
+				baseDir = new File(userHome, "/Library/Application Support/com.pokeemu.macos");
+				pokemmoDir = new File(baseDir, "pokemmo-client-" + Config.UPDATE_CHANNEL.name());
+			}
+
+			if(SandboxType.get() == SandboxType.FLATPAK || SandboxType.get() == SandboxType.SNAPCRAFT)
+			{
+				if(System.getenv("SNAP_USER_COMMON") != null)
+					baseDir = new File(System.getenv("SNAP_USER_COMMON"));
+				else if(System.getenv("XDG_DATA_HOME") != null)
+					baseDir = new File(System.getenv("XDG_DATA_HOME"));
+				else
+					baseDir = new File(userHome, ".local" + File.separator + "share");
+
+				pokemmoDir = new File(baseDir, "pokemmo-client-" + Config.UPDATE_CHANNEL.name());
+			}
+
+			for(UpdateChannel channel : UpdateChannel.values())
+			{
+				if(new File(baseDir, "pokemmo-client-" + channel.name()).exists())
+					channel.setSelectable(true);
+			}
 		}
-
-		if(SandboxType.get() == SandboxType.FLATPAK || SandboxType.get() == SandboxType.SNAPCRAFT)
-		{
-			if(System.getenv("SNAP_USER_COMMON") != null)
-				baseDir = new File(System.getenv("SNAP_USER_COMMON"));
-			else if(System.getenv("XDG_DATA_HOME") != null)
-				baseDir = new File(System.getenv("XDG_DATA_HOME"));
-			else
-				baseDir = new File(userHome, ".local" + File.separator + "share");
-
-			pokemmoDir = new File(baseDir, "pokemmo-client-" + Config.UPDATE_CHANNEL.toString());
-		}
-	}
-
-	private void run(boolean repair)
-	{
-		updatePokemmoDirectory();
-
 
 		launcherUI = createLauncherUI();
 		if(!Launcher.ENABLE_HEADLESS_LAUNCH)
@@ -166,7 +168,10 @@ public class Launcher
 
 		checkForRunning();
 		if(!downloadFeeds())
+		{
+			launcherUI.enterEventLoop();
 			return;
+		}
 
 		File revisionFile = new File(pokemmoDir, "revision.txt");
 		if(!pokemmoDir.exists() || !revisionFile.exists())
@@ -425,7 +430,7 @@ public class Launcher
 					if(SandboxType.get() != SandboxType.NONE && path.equals(launcherPath))
 					{
 						System.out.println("Found destroyable " + path);
-						destroyables.add(f);
+//						destroyables.add(f);
 						return;
 					}
 

@@ -627,9 +627,9 @@ public class MainShell implements LauncherUI
                 if (idx >= 0 && idx < UpdateChannel.ENABLED_UPDATE_CHANNELS.length)
                 {
                     Config.UPDATE_CHANNEL = UpdateChannel.ENABLED_UPDATE_CHANNELS[idx];
-					parent.updatePokemmoDirectory();
-                    parent.doUpdate(false);
+					configShell.setVisible(false);
                     Config.save();
+					System.exit(Launcher.EXIT_CODE_SUCCESS); //TODO: Make this work without restart
                 }
             }
         });

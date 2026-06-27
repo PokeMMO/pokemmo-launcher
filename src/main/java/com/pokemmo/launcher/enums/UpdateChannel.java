@@ -15,14 +15,19 @@ public enum UpdateChannel
 	testserver(false),
 	testserver2(false);
 
-	public static final UpdateChannel[] ENABLED_UPDATE_CHANNELS;
+	public static UpdateChannel[] ENABLED_UPDATE_CHANNELS;
 
 	static
+	{
+		setEnabledUpdateChannels();
+	}
+
+	public static void setEnabledUpdateChannels()
 	{
 		ENABLED_UPDATE_CHANNELS = Stream.of(values()).filter(UpdateChannel::isSelectable).toArray(UpdateChannel[]::new);
 	}
 
-	private final boolean selectable;
+	private boolean selectable;
 
 	UpdateChannel(boolean selectable)
 	{
@@ -41,6 +46,12 @@ public enum UpdateChannel
 	public boolean isSelectable()
 	{
 		return selectable;
+	}
+
+	public void setSelectable(boolean selectable)
+	{
+		this.selectable = selectable;
+		setEnabledUpdateChannels();
 	}
 
 	public String[] getMirrors()
