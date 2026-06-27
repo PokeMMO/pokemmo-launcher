@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.MissingResourceException;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.enums.PokeMMOLocale;
+import com.pokemmo.launcher.enums.SandboxType;
 import com.pokemmo.launcher.enums.UpdateChannel;
 import com.pokemmo.launcher.ui.shared.LocaleAwareElementManager;
 
@@ -43,7 +43,7 @@ public class Config
 		Properties props = new Properties();
 		try
 		{
-			props.load(new FileReader(getConfigHome() + "/pokemmo-installer.properties"));
+			props.load(new FileReader(getConfigFile()));
 		}
 		catch(IOException e)
 		{
@@ -93,13 +93,12 @@ public class Config
 		props.put("max_mem_hard", Short.toString(HARD_MAX_MEMORY_MB));
 		props.put("launcher_locale", ACTIVE_LOCALE.getLangTag());
 
-		File config_dir = new File(getConfigHome());
-		if(config_dir.exists() || config_dir.mkdir())
+		File configDir = getConfigHome();
+		if(configDir.exists() || configDir.mkdir())
 		{
-			File config_file = new File(getConfigHome() + "/pokemmo-installer.properties");
 			try
 			{
-				props.store(new FileWriter(config_file, StandardCharsets.UTF_8), "PokeMMO Unix Installer v" + Launcher.INSTALLER_VERSION + " Properties");
+				props.store(new FileWriter(getConfigFile(), StandardCharsets.UTF_8), "PokeMMO Launcher v" + Launcher.INSTALLER_VERSION + " Properties");
 			}
 			catch(IOException e)
 			{
@@ -108,7 +107,7 @@ public class Config
 		}
 		else
 		{
-			System.out.println("Failed to save configuration for config_dir " + config_dir);
+			System.out.println("Failed to save configuration for config_dir " + configDir);
 		}
 	}
 
@@ -121,15 +120,25 @@ public class Config
 		LocaleAwareElementManager.instance.updateElements();
 	}
 
-	private static String getConfigHome()
+	private static File getConfigHome()
 	{
-		String config_home = System.getenv("SNAP_USER_COMMON");
-		if(config_home == null)
-		{
-			config_home = Objects.requireNonNullElse(System.getenv("XDG_CONFIG_HOME"), System.getProperty("user.home") + "/.config");
-		}
+		File userHome = new File(System.getProperty("user.home"));
+		if(SandboxType.get() == SandboxType.MACOS_APP)
+			return new File(userHome, "/Library/Application Support/com.pokeemu.macos");
 
-		return config_home;
+		if(System.getenv("SNAP_USER_COMMON") != null)
+			return new File(System.getenv("SNAP_USER_COMMON"));
+		else if(System.getenv("XDG_CONFIG_HOME") != null)
+			return new File(System.getenv("XDG_CONFIG_HOME"));
+		return new File(userHome, ".config");
+	}
+
+	private static File getConfigFile()
+	{
+		if(SandboxType.get() == SandboxType.MACOS_APP)
+			return new File(getConfigHome(), "installer.properties");
+
+		return new File(getConfigHome(), "pokemmo-installer.properties");
 	}
 
 	public static String getString(String key)
