@@ -236,7 +236,7 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 			launchGame = new LocaleAwareButton("main.launch");
 			launchGame.setEnabled(false);
 
-			if(!Launcher.UPDATER_MODE)
+			if(Launcher.ENABLE_CONFIG)
 				bottom_panel.add(configLauncher, BorderLayout.WEST);
 			bottom_panel.add(launchGame, BorderLayout.EAST);
 		}
@@ -456,7 +456,7 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 	{
 		launchGame.setEnabled(true);
 
-		if(Launcher.QUICK_AUTOSTART)
+		if(Launcher.ENABLE_HEADLESS_LAUNCH)
 		{
 			parent.launchGame();
 		}

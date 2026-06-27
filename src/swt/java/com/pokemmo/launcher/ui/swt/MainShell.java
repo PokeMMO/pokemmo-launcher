@@ -174,10 +174,7 @@ public class MainShell implements LauncherUI
             }
         });
 
-        if (Launcher.UPDATER_MODE)
-        {
-            configButton.setVisible(false);
-        }
+        configButton.setVisible(Launcher.ENABLE_CONFIG);
 
         // Cancel background downloads on close
         shell.addShellListener(new ShellAdapter()
@@ -447,7 +444,7 @@ public class MainShell implements LauncherUI
             }
         });
 
-        if (Launcher.QUICK_AUTOSTART)
+        if(Launcher.ENABLE_HEADLESS_LAUNCH)
         {
             parent.launchGame();
         }

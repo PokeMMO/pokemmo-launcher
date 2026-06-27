@@ -74,8 +74,8 @@ public class Launcher
 	/**
 	 * Whether to silently start the game client (without bringing this UI to the front)
 	 */
-	public static boolean QUICK_AUTOSTART = true;
-	public static boolean UPDATER_MODE = true;
+	public static boolean ENABLE_HEADLESS_LAUNCH = true;
+	public static boolean ENABLE_CONFIG = false;
 
 	private LauncherUI launcherUI;
 
@@ -142,7 +142,7 @@ public class Launcher
 
 
 		launcherUI = createLauncherUI();
-		if(!Launcher.QUICK_AUTOSTART)
+		if(!Launcher.ENABLE_HEADLESS_LAUNCH)
 			displayLauncherUI();
 
 		System.out.println("Running Launcher for channel " + Config.UPDATE_CHANNEL);
@@ -252,7 +252,7 @@ public class Launcher
 
 	private void displayLauncherUI()
 	{
-		QUICK_AUTOSTART = false;
+		ENABLE_HEADLESS_LAUNCH = false;
 		launcherUI.open();
 	}
 
@@ -807,27 +807,25 @@ public class Launcher
 
 	public static void main(String[] args)
 	{
-		Config.load();
-
-		Runtime.getRuntime().addShutdownHook(new Thread(Config::save));
+		var argsList = Arrays.asList(args);
+		if(Arrays.asList(args).contains("--force-ui") || Arrays.asList(args).contains("--launch") || flatpak != null || snapcraft != null)
+		{
+			ENABLE_CONFIG = true;
+			System.out.println("Enabling configuration...");
+			Config.load();
+			Runtime.getRuntime().addShutdownHook(new Thread(Config::save));
+		}
 
 		String httpAuthPassword = "";
 		boolean repair = false;
 
-		ArrayDeque<String> queue = new ArrayDeque<>(Arrays.asList(args));
+		ArrayDeque<String> queue = new ArrayDeque<>(argsList);
 		while(!queue.isEmpty())
 		{
 			String arg = queue.poll();
 			if(arg.equals("--force-ui") || arg.equals("--update"))
 			{
-				QUICK_AUTOSTART = false;
-				UPDATER_MODE = arg.equals("--update");
-				continue;
-			}
-
-			if(arg.equals("--launch"))
-			{
-				UPDATER_MODE = false;
+				ENABLE_HEADLESS_LAUNCH = false;
 				continue;
 			}
 
@@ -898,7 +896,7 @@ public class Launcher
 
 			if(arg.equals("-repair:true") || arg.equals("--repair"))
 			{
-				QUICK_AUTOSTART = false;
+				ENABLE_HEADLESS_LAUNCH = false;
 				repair = true;
 				continue;
 			}
