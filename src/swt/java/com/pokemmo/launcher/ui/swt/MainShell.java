@@ -707,12 +707,6 @@ public class MainShell implements LauncherUI
         configShell.addShellListener(new ShellAdapter()
         {
             @Override
-            public void shellActivated(ShellEvent e)
-            {
-                centerOverParent(configShell);
-            }
-
-            @Override
             public void shellDeactivated(ShellEvent e)
             {
                 if (!configShell.isDisposed())
