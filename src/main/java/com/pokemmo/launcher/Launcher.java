@@ -70,7 +70,7 @@ public class Launcher
 	public static final int EXIT_CODE_SUCCESS = 0;
 	public static final int EXIT_CODE_NETWORK_FAILURE = 1;
 	public static final int EXIT_CODE_IO_FAILURE = 2;
-	public static final int EXIT_CODE_UNK_FAILURE = -127;
+	public static final int EXIT_CODE_UNK_FAILURE = 127;
 
 	/**
 	 * Whether to silently start the game client (without bringing this UI to the front)
@@ -88,7 +88,6 @@ public class Launcher
 	 * Platform specific baseDirectory
 	 */
 	private File baseDir;
-
 	/**
 	 * The default location of PokeMMO.exe and other files
 	 */
@@ -430,7 +429,7 @@ public class Launcher
 					if(SandboxType.get() != SandboxType.NONE && path.equals(launcherPath))
 					{
 						System.out.println("Found destroyable " + path);
-//						destroyables.add(f);
+						destroyables.add(f);
 						return;
 					}
 
@@ -805,25 +804,69 @@ public class Launcher
 
 	public void createSymlinkedDirectories()
 	{
-		// Screenshots symlink is only created if XDG_PICTURES_DIR is set. There is no way to predict what the pictures directory is otherwise set to, due to each DE implementing its own (and potentially different languages)
-		String xdg_pictures_dir = System.getenv("XDG_PICTURES_DIR");
-		if(xdg_pictures_dir != null)
+		if(OS.get() == OS.MAC)
 		{
-			File xdgPicturesDir = new File(xdg_pictures_dir);
-			File screenshotsDir = new File(xdgPicturesDir, "PokeMMO Screenshots");
+			File caches = new File(userHome, "Library/Caches/com.pokeemu.macos/pokemmo-client-caches/");
 
-			if(!screenshotsDir.exists() && screenshotsDir.mkdir())
+			if(!caches.exists() && !caches.mkdirs())
 			{
-				try
+				launcherUI.showError(Config.getString("error.dir_not_accessible", caches.getPath(), "DIR_3"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+				return;
+			}
+			else if(!caches.isDirectory())
+			{
+				launcherUI.showError(Config.getString("error.dir_not_dir", caches.getPath(), "DIR_6"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+				return;
+			}
+
+			File screenshots = new File(userHome, "Pictures/PokeMMO Screenshots/");
+
+			if(!screenshots.exists() && !screenshots.mkdirs())
+			{
+				launcherUI.showError(Config.getString("error.dir_not_accessible", screenshots.getPath(), "DIR_4"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+				return;
+			}
+			else if(!screenshots.isDirectory())
+			{
+				launcherUI.showError(Config.getString("error.dir_not_dir", screenshots.getPath(), "DIR_7"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+				return;
+			}
+
+			try
+			{
+				Files.createSymbolicLink(new File(pokemmoDir, "cache").toPath(), caches.toPath());
+				Files.createSymbolicLink(new File(pokemmoDir, "screenshots").toPath(), screenshots.toPath());
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+			return;
+		}
+
+		if(OS.get() == OS.LINUX)
+		{
+			// Screenshots symlink is only created if XDG_PICTURES_DIR is set. There is no way to predict what the pictures directory is otherwise set to, due to each DE implementing its own (and potentially different languages)
+			String xdg_pictures_dir = System.getenv("XDG_PICTURES_DIR");
+			if(xdg_pictures_dir != null)
+			{
+				File xdgPicturesDir = new File(xdg_pictures_dir);
+				File screenshotsDir = new File(xdgPicturesDir, "PokeMMO Screenshots");
+
+				if(!screenshotsDir.exists() && screenshotsDir.mkdir())
 				{
-					Files.createSymbolicLink(new File(pokemmoDir, "screenshots").toPath(), screenshotsDir.toPath());
-				}
-				catch(IOException e)
-				{
-					// Something has already set these up
-					e.printStackTrace();
+					try
+					{
+						Files.createSymbolicLink(new File(pokemmoDir, "screenshots").toPath(), screenshotsDir.toPath());
+					}
+					catch(IOException e)
+					{
+						// Something has already set these up
+						e.printStackTrace();
+					}
 				}
 			}
+			return;
 		}
 	}
 
