@@ -268,4 +268,14 @@ public class Util
 		String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp - 1) + (si ? "" : "i");
 		return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
 	}
+
+	public static boolean isEnv(String key)
+	{
+		String val  = System.getenv(key);
+		if(val == null)
+			return false;
+
+		String trimmed = val.trim();
+		return "true".equalsIgnoreCase(trimmed) || "y".equalsIgnoreCase(trimmed) || "1".equals(trimmed);
+	}
 }

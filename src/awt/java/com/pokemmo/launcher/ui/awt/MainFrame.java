@@ -6,9 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,6 +14,7 @@ import java.util.concurrent.Executors;
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.config.Config;
 import com.pokemmo.launcher.enums.PokeMMOLocale;
+import com.pokemmo.launcher.enums.SandboxType;
 import com.pokemmo.launcher.enums.UpdateChannel;
 import com.pokemmo.launcher.ui.LauncherUI;
 import com.pokemmo.launcher.ui.shared.UiBridge;
@@ -149,6 +148,7 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 				updateChannelList.setSelectedItem(Config.UPDATE_CHANNEL);
 				updateChannelList.addActionListener((event) -> {
 					Config.UPDATE_CHANNEL = (UpdateChannel) updateChannelList.getSelectedItem();
+					parent.updatePokemmoDirectory();
 					parent.doUpdate(false);
 					Config.save();
 				});
@@ -256,7 +256,7 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 		pack();
 		setSize(600, 400);
 		setLocationRelativeTo(null);
-		if(Launcher.flatpak != null || Launcher.snapcraft != null)
+		if(SandboxType.get() == SandboxType.FLATPAK || SandboxType.get() == SandboxType.SNAPCRAFT)
 			setTitle(Config.getString("main.title"));
 		else
 			setTitle(Config.getString("updater.title"));

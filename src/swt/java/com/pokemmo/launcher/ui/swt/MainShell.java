@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Text;
 import com.pokemmo.launcher.Launcher;
 import com.pokemmo.launcher.config.Config;
 import com.pokemmo.launcher.enums.PokeMMOLocale;
+import com.pokemmo.launcher.enums.SandboxType;
 import com.pokemmo.launcher.enums.UpdateChannel;
 import com.pokemmo.launcher.ui.LauncherUI;
 import com.pokemmo.launcher.ui.shared.UiBridge;
@@ -77,7 +78,7 @@ public class MainShell implements LauncherUI
 
         // --- Shell ---
         shell = new Shell(display, SWT.SHELL_TRIM);
-		if(Launcher.flatpak != null || Launcher.snapcraft != null)
+		if(SandboxType.get() == SandboxType.FLATPAK || SandboxType.get() == SandboxType.SNAPCRAFT)
 			shell.setText(Config.getString("main.title"));
 		else
 			shell.setText(Config.getString("updater.title"));
@@ -626,6 +627,7 @@ public class MainShell implements LauncherUI
                 if (idx >= 0 && idx < UpdateChannel.ENABLED_UPDATE_CHANNELS.length)
                 {
                     Config.UPDATE_CHANNEL = UpdateChannel.ENABLED_UPDATE_CHANNELS[idx];
+					parent.updatePokemmoDirectory();
                     parent.doUpdate(false);
                     Config.save();
                 }

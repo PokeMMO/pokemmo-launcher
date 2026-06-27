@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,6 +26,7 @@ import com.pokemmo.launcher.config.Config;
 import com.pokemmo.launcher.enums.Arch;
 import com.pokemmo.launcher.enums.OS;
 import com.pokemmo.launcher.enums.PokeMMOLocale;
+import com.pokemmo.launcher.enums.SandboxType;
 import com.pokemmo.launcher.enums.UpdateChannel;
 import com.pokemmo.launcher.ui.LauncherUI;
 import com.pokemmo.launcher.updater.FeedManager;
@@ -64,7 +64,7 @@ import com.pokemmo.launcher.util.Util;
  */
 public class Launcher
 {
-	public static final int INSTALLER_VERSION = 30;
+	public static final int INSTALLER_VERSION = 60;
 	public static final String INSTALLER_VERSION_CODE = "4.0a-beta2";
 
 	public static final int EXIT_CODE_SUCCESS = 0;
@@ -79,6 +79,15 @@ public class Launcher
 	public static boolean ENABLE_CONFIG = false;
 
 	private LauncherUI launcherUI;
+
+	/**
+	 * User home file. Obtained user.home
+	 */
+	private File userHome;
+	/**
+	 * Platform specific baseDirectory
+	 */
+	private File baseDir;
 
 	/**
 	 * The default location of PokeMMO.exe and other files
@@ -101,45 +110,41 @@ public class Launcher
 	StringWriter stackTraceStringWriter = new StringWriter();
 	PrintWriter stackTracePrintWriter = new PrintWriter(stackTraceStringWriter);
 
+
 	public static Methanol httpClient;
-	public static final String snapcraft, flatpak, httpClientUserAgent;
+	public static final String httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION_CODE+")";
 
-	static
+	public void updatePokemmoDirectory()
 	{
-		snapcraft = System.getenv("POKEMMO_IS_SNAPPED");
-		flatpak = System.getenv("POKEMMO_IS_FLATPAKED");
+		userHome = new File(System.getProperty("user.home"));
 
-		if(snapcraft != null)
+		//Use current working directory if not overridden
+		pokemmoDir = new File(".").toPath().toAbsolutePath().normalize().toFile();
+
+		baseDir = pokemmoDir;
+
+		if(SandboxType.get() == SandboxType.MACOS_APP)
 		{
-			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION_CODE+") (Snapcraft)";
+			baseDir = new File(userHome, "/Library/Application Support/com.pokeemu.macos");
+			pokemmoDir = new File(baseDir, "pokemmo-client-" + Config.UPDATE_CHANNEL.toString());
 		}
-		else if (flatpak != null)
+
+		if(SandboxType.get() == SandboxType.FLATPAK || SandboxType.get() == SandboxType.SNAPCRAFT)
 		{
-			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION_CODE+") (Flatpak)";
-		}
-		else
-		{
-			httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION_CODE+")";
+			if(System.getenv("SNAP_USER_COMMON") != null)
+				baseDir = new File(System.getenv("SNAP_USER_COMMON"));
+			else if(System.getenv("XDG_DATA_HOME") != null)
+				baseDir = new File(System.getenv("XDG_DATA_HOME"));
+			else
+				baseDir = new File(userHome, ".local" + File.separator + "share");
+
+			pokemmoDir = new File(baseDir, "pokemmo-client-" + Config.UPDATE_CHANNEL.toString());
 		}
 	}
 
 	private void run(boolean repair)
 	{
-		String fileSeparator = File.separator;
-
-		//Use current working directory if not overridden
-		pokemmoDir = new File(".").toPath().toAbsolutePath().normalize().toFile();
-
-		if(flatpak != null || snapcraft != null)
-		{
-			String user_home = System.getProperty("user.home");
-			String pokemmo_data_home = System.getenv("SNAP_USER_COMMON");
-			if(pokemmo_data_home == null)
-			{
-				pokemmo_data_home = Objects.requireNonNullElse(System.getenv("XDG_DATA_HOME"), user_home + fileSeparator + ".local" + fileSeparator + "share");
-			}
-			pokemmoDir = new File(pokemmo_data_home + fileSeparator + "pokemmo-client-" + Config.UPDATE_CHANNEL.toString() + fileSeparator);
-		}
+		updatePokemmoDirectory();
 
 
 		launcherUI = createLauncherUI();
@@ -151,8 +156,12 @@ public class Launcher
 		System.out.println("Channel: " + Config.UPDATE_CHANNEL);
 		System.out.println("OS: " + OS.get());
 		System.out.println("Arch: " + Arch.get());
+		System.out.println("Sandbox Type: " + SandboxType.get());
+		System.out.println("=================================================");
+		System.out.println("Working Dir: " + System.getProperty("user.dir"));
+		System.out.println("Base Dir: " + baseDir.getAbsolutePath());
+		System.out.println("User Home Dir: " + userHome.getAbsolutePath());
 		System.out.println("PokeMMO Dir: " + pokemmoDir.getAbsolutePath());
-		System.out.println("Workding Dir: " + System.getProperty("user.dir"));
 		System.out.println("=================================================");
 
 		checkForRunning();
@@ -351,15 +360,21 @@ public class Launcher
 
 		// Used by KDE to xdg-portal file dialogues
 		pb.environment().put("GTK_USE_PORTALS", "1");
+
 		pb.environment().put("POKEMMO_LAUNCHER_VER", INSTALLER_VERSION_CODE);
 
-		if(snapcraft != null)
+		if(SandboxType.get() == SandboxType.MACOS_APP)
 		{
-			pb.environment().put("POKEMMO_IS_SNAPPED", snapcraft);
+			pb.environment().put("POKEMMO_MACOS_LAUNCHER_VER", INSTALLER_VERSION_CODE);
+			pb.environment().put("POKEMMO_IS_MACOS_APP", "1");
 		}
-		else if(flatpak != null)
+		else if(SandboxType.get() == SandboxType.SNAPCRAFT)
 		{
-			pb.environment().put("POKEMMO_IS_FLATPAKED", flatpak);
+			pb.environment().put("POKEMMO_IS_SNAPPED", "1");
+		}
+		else if(SandboxType.get() == SandboxType.FLATPAK)
+		{
+			pb.environment().put("POKEMMO_IS_FLATPAKED", "1");
 		}
 
 		System.out.println("Starting with params " + Arrays.toString(args.toArray(new String[0])));
@@ -407,7 +422,7 @@ public class Launcher
 
 					//If sandboxed, only one process should be using this launcher (legacy java stuff)
 					//TODO: Remove after full native-image
-					if((flatpak != null || snapcraft != null) && path.equals(launcherPath))
+					if(SandboxType.get() != SandboxType.NONE && path.equals(launcherPath))
 					{
 						System.out.println("Found destroyable " + path);
 						destroyables.add(f);
@@ -832,7 +847,7 @@ public class Launcher
 	public static void main(String[] args)
 	{
 		var argsList = Arrays.asList(args);
-		if(Arrays.asList(args).contains("--force-ui") || Arrays.asList(args).contains("--launch") || flatpak != null || snapcraft != null)
+		if(Arrays.asList(args).contains("--force-ui") || Arrays.asList(args).contains("--launch") || SandboxType.get() != SandboxType.NONE)
 		{
 			ENABLE_CONFIG = true;
 			System.out.println("Enabling configuration...");
