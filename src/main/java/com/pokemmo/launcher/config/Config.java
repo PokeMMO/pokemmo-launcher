@@ -40,6 +40,9 @@ public class Config
 
 	public static void load()
 	{
+		if(!Launcher.ENABLE_CONFIG)
+			return;
+
 		Properties props = new Properties();
 		try
 		{
@@ -87,6 +90,9 @@ public class Config
 
 	public static void save()
 	{
+		if(!Launcher.ENABLE_CONFIG)
+			return;
+
 		Properties props = new Properties();
 		props.put("network_threads", Integer.toString(NETWORK_THREADS));
 		props.put("update_channel", UPDATE_CHANNEL.toString());
