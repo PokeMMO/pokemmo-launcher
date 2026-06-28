@@ -136,4 +136,7 @@ public interface LauncherUI
 	{
 
 	}
+
+	void exec(Runnable runnable);
+	void schedule(int delayMs, Runnable runnable);
 }

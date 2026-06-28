@@ -77,6 +77,7 @@ public class Launcher
 	 */
 	public static boolean ENABLE_HEADLESS_LAUNCH = true;
 	public static boolean ENABLE_CONFIG = false;
+	public static boolean ENABLE_DELAY_START = false;
 
 	private LauncherUI launcherUI;
 
@@ -172,12 +173,22 @@ public class Launcher
 		System.out.println("PokeMMO Dir: " + pokemmoDir.getAbsolutePath());
 		System.out.println("=================================================");
 
-		checkForRunning();
-		if(!downloadFeeds())
+		if(ENABLE_DELAY_START)
 		{
+			launcherUI.schedule(2000, () -> run2(repair));
 			launcherUI.enterEventLoop();
 			return;
 		}
+
+		launcherUI.exec(() -> run2(repair));
+		launcherUI.enterEventLoop();
+	}
+
+	private void run2(boolean repair)
+	{
+		checkForRunning();
+		if(!downloadFeeds())
+			return;
 
 		File revisionFile = new File(pokemmoDir, "revision.txt");
 		if(!pokemmoDir.exists() || !revisionFile.exists())
@@ -189,7 +200,6 @@ public class Launcher
 		if(!pokemmoDir.isDirectory())
 		{
 			launcherUI.showError(Config.getString("error.dir_not_dir", pokemmoDir, "DIR_5"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
-			launcherUI.enterEventLoop();
 			return;
 		}
 
@@ -198,7 +208,6 @@ public class Launcher
 			if(!pokemmoDir.setReadable(true) || !pokemmoDir.setWritable(true) || !pokemmoDir.setExecutable(true))
 			{
 				launcherUI.showError(Config.getString("error.dir_not_accessible", pokemmoDir, "DIR_2"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
-				launcherUI.enterEventLoop();
 				return;
 			}
 		}
@@ -236,8 +245,6 @@ public class Launcher
 			launcherUI.setStatus("status.ready", 100);
 			launcherUI.setCanStart();
 		}
-
-		launcherUI.enterEventLoop();
 	}
 
 	private LauncherUI createLauncherUI()
@@ -948,6 +955,9 @@ public class Launcher
 			if(arg.equals("--force-ui") || arg.equals("--update"))
 			{
 				ENABLE_HEADLESS_LAUNCH = false;
+
+				if(arg.equals("--update"))
+					ENABLE_DELAY_START = true;
 				continue;
 			}
 

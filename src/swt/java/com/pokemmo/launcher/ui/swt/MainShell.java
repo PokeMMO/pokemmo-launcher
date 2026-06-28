@@ -761,4 +761,16 @@ public class MainShell implements LauncherUI
 	{
 		new UpdaterSwtWorker(parent, this, repair).execute();
 	}
+
+	@Override
+	public void schedule(int delayMs, Runnable runnable)
+	{
+		Display.getDefault().timerExec(delayMs, runnable);
+	}
+
+	@Override
+	public void exec(Runnable runnable)
+	{
+		Display.getDefault().asyncExec(runnable);
+	}
 }

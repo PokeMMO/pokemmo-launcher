@@ -500,4 +500,19 @@ public class MainFrame extends JFrame implements ActionListener, LauncherUI
 			e.printStackTrace();
 		}
 	}
+
+	@Override
+	public void schedule(int delayMs, Runnable runnable)
+	{
+		Timer timer = new Timer(delayMs, e -> {
+			runnable.run();
+		});
+		timer.setRepeats(false);
+		timer.start();
+	}
+
+	public void exec(Runnable runnable)
+	{
+		executorService.execute(runnable);
+	}
 }
