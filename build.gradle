@@ -184,7 +184,7 @@ graalvmNative {
                     "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS",
                     "-H:NativeLinkerOption=/ENTRY:mainCRTStartup",
                     "-H:NativeLinkerOption=/MANIFEST:EMBED",
-                    "-H:NativeLinkerOption=\"/MANIFESTUAC:level='asInvoker' uiAccess='false'\"",
+                    '-H:NativeLinkerOption="/MANIFESTUAC:level=\'asInvoker\' uiAccess=\'false\'"',
                     "-H:NativeLinkerOption=" + rootProject.file("icons/icon.res").absolutePath
             );
         }
@@ -197,7 +197,7 @@ graalvmNative {
                     "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS",
                     "-H:NativeLinkerOption=/ENTRY:mainCRTStartup",
                     "-H:NativeLinkerOption=/MANIFEST:EMBED",
-                    "-H:NativeLinkerOption=\"/MANIFESTUAC:level='asInvoker' uiAccess='false'\"",
+                    '-H:NativeLinkerOption="/MANIFESTUAC:level=\'asInvoker\' uiAccess=\'false\'"',
                     "-H:NativeLinkerOption=" + rootProject.file("icons/icon.res").absolutePath
             );
         }
