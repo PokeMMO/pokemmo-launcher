@@ -21,14 +21,24 @@ jobs:
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 #v6.2.0
         with:
           gradle-version: "9.5.1"
-      - name: Build with Gradle
+      - name: Build native image
         run: gradle nativeCompileCI
+      - name: Build awt jar
+        if: matrix.os == 'ubuntu-latest'
+        run: gradle jarAWT
       - name: Upload artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
         with:
           name: binary-${{ matrix.os }}
           path: |
             build/native/native*Compile
+      - name: Upload artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          name: awt
+          path: |
+            build/libs/launcher-awt.jar
 
   package:
     runs-on: ubuntu-latest
@@ -45,6 +55,8 @@ jobs:
           mkdir -p out/macos/x64
           #mkdir -p out/windows/arm64
           mkdir -p out/windows/x64
+          cp */launcher-awt.jar pokemmo_updater.jar
+          cp */nativeWindowsX64Compile/Launcher.exe out/windows/x64/PokeMMO-Updater.exe
           cp */nativeWindowsX64Compile/Launcher.exe out/windows/x64/PokeMMO-Updater.exe
           #cp */nativeWindowsARM64Compile/Launcher.exe out/windows/arm64/PokeMMO-Updater.exe
           cp */nativeMacosX64Compile/Launcher out/macos/x64/PokeMMO-Updater
