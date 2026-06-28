@@ -184,7 +184,7 @@ graalvmNative {
                     "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS",
                     "-H:NativeLinkerOption=/ENTRY:mainCRTStartup",
                     "-H:NativeLinkerOption=/MANIFEST:EMBED",
-                    "-H:NativeLinkerOption=/MANIFESTUAC:level='asInvoker'",
+                    "-H:NativeLinkerOption=/MANIFESTUAC:level=\"asInvoker\"",
                     "-H:NativeLinkerOption=" + rootProject.file("icons/icon.res").absolutePath
             );
         }
@@ -196,7 +196,8 @@ graalvmNative {
             buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.win32.*",
                     "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS",
                     "-H:NativeLinkerOption=/ENTRY:mainCRTStartup",
-                    "-H:NativeLinkerOption=/MANIFESTUAC:level='asInvoker'",
+                    "-H:NativeLinkerOption=/MANIFEST:EMBED",
+                    "-H:NativeLinkerOption=/MANIFESTUAC:level=\"asInvoker\"",
                     "-H:NativeLinkerOption=" + rootProject.file("icons/icon.res").absolutePath
             );
         }
