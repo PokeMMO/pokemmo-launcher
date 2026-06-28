@@ -35,14 +35,6 @@ public class JREUtil
 			return java;
 		}
 
-		//Macos
-		java = new File("../runtime/Contents/Home", "bin" + File.separator + "java" + (OS.get() == OS.WINDOWS ? ".exe" : ""));
-		if(java.exists() && java.isFile() && java.canExecute())
-		{
-			System.out.println("Found java from macos runtime: " + java.getAbsolutePath());
-			return java;
-		}
-
 		//Bundled
 		java = new File(pokemmoDir, "bin" + File.separator + "java" + (OS.get() == OS.WINDOWS ? ".exe" : ""));
 		if(java.exists() && java.isFile() && java.canExecute())

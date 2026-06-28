@@ -125,7 +125,7 @@ public class Launcher
 		{
 			if(SandboxType.get() == SandboxType.MACOS_APP)
 			{
-				baseDir = new File(userHome, "/Library/Application Support/com.pokeemu.macos");
+				baseDir = new File(userHome, "Library/Application Support/com.pokeemu.macos");
 				pokemmoDir = new File(baseDir, "pokemmo-client-" + Config.UPDATE_CHANNEL.name());
 			}
 
@@ -151,6 +151,13 @@ public class Launcher
 		launcherUI = createLauncherUI();
 		if(!Launcher.ENABLE_HEADLESS_LAUNCH)
 			displayLauncherUI();
+
+		if(pokemmoDir.toPath().getNameCount() == 0)
+		{
+			launcherUI.showError(Config.getString("error.dir_not_dir", pokemmoDir, "DIR_ROOT"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
+			launcherUI.enterEventLoop();
+			return;
+		}
 
 		System.out.println("=================================================");
 		System.out.println("Running Launcher");
@@ -415,40 +422,54 @@ public class Launcher
 
 		String launcherPath = processInfo.command().get();
 		boolean isNativeImage = System.getProperty("java.vm.name").contains("Substrate VM");
+		File java = JREUtil.findJava(pokemmoDir);
 
 		System.out.println("=================================================");
 		System.out.println("Checking for Running");
-		System.out.println("launcherPath: " +launcherPath);
-		System.out.println("isNativeImage: " +isNativeImage);
+		System.out.println("launcherPath: " + launcherPath);
+		System.out.println("isNativeImage: " + isNativeImage);
+		System.out.println("java: " + java);
 
 		List<ProcessHandle> destroyables = new ArrayList<>();
-		ProcessHandle.allProcesses().filter(ProcessHandle::isAlive).forEach(f ->
+		ProcessHandle.allProcesses().forEach(f ->
 		{
 			try
 			{
-				if(f.info().command().isPresent() && f.pid() != processHandle.pid() && f.info().user().isPresent() && f.info().user().equals(processInfo.user()))
+				if(!f.isAlive())
+					return;
+
+				if(!f.info().command().isPresent())
+					return;
+
+				if(f.pid() == processHandle.pid())
+					return;
+
+				if(!f.info().user().isPresent() || !f.info().user().equals(processInfo.user()))
+					return;
+
+				String path = f.info().command().get();
+				//Check if another updater is running
+				if(isNativeImage && !launcherPath.isBlank() && path.equals(launcherPath))
 				{
-					String path = f.info().command().get();
+					System.out.println("Found destroyable1 " + f.info());
+					destroyables.add(f);
+					return;
+				}
 
-					//Check if another updater is running
-					if(isNativeImage && !launcherPath.isBlank() && path.equals(launcherPath))
-					{
-						System.out.println("Found destroyable1 " + path);
-						destroyables.add(f);
-						return;
-					}
+				//Check if native PokeMMO
+				if(path.startsWith(pokemmoDir.getAbsolutePath()))
+				{
+					System.out.println("Found destroyable2 " + f.info());
+					destroyables.add(f);
+					return;
+				}
 
-					if(path.startsWith(pokemmoDir.getAbsolutePath()))
-					{
-						System.out.println("Found destroyable2 " + path);
-						destroyables.add(f);
-					}
-
-					if(f.info().command().get().toLowerCase(Locale.ROOT).contains("java") && Arrays.stream(f.info().arguments().get()).filter((a) -> a.contains("com.pokeemu.client.Client")).count() < 1)
-					{
-						System.out.println("Found destroyable3 " + path);
-						destroyables.add(f);
-					}
+				//Check if legacy java PokeMMO
+				if(path.startsWith(java.getAbsolutePath()) && Arrays.stream(f.info().arguments().get()).filter((a) -> a.contains("com.pokeemu.client.Client")).count() > 0)
+				{
+					System.out.println("Found destroyable3 " + f.info());
+					destroyables.add(f);
+					return;
 				}
 			}
 			catch(Exception e)
@@ -461,6 +482,7 @@ public class Launcher
 
 		if(!destroyables.isEmpty())
 		{
+			displayLauncherUI();
 			if(launcherUI.showYesNoDialogue(Config.getString("status.game_already_running"), ""))
 			{
 				for(ProcessHandle p : destroyables)
