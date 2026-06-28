@@ -55,7 +55,7 @@ jobs:
           mkdir -p out/macos/x64
           #mkdir -p out/windows/arm64
           mkdir -p out/windows/x64
-          cp */launcher-awt.jar pokemmo_updater.jar
+          cp */launcher-awt.jar out/pokemmo_updater.jar
           cp */nativeWindowsX64Compile/Launcher.exe out/windows/x64/PokeMMO-Updater.exe
           cp */nativeWindowsX64Compile/Launcher.exe out/windows/x64/PokeMMO-Updater.exe
           #cp */nativeWindowsARM64Compile/Launcher.exe out/windows/arm64/PokeMMO-Updater.exe
