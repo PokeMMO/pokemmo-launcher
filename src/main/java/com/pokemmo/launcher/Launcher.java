@@ -414,6 +414,12 @@ public class Launcher
 		}
 
 		String launcherPath = processInfo.command().get();
+		boolean isNativeImage = System.getProperty("java.vm.name").contains("Substrate VM");
+
+		System.out.println("=================================================");
+		System.out.println("Checking for Running");
+		System.out.println("launcherPath: " +launcherPath);
+		System.out.println("isNativeImage: " +isNativeImage);
 
 		List<ProcessHandle> destroyables = new ArrayList<>();
 		ProcessHandle.allProcesses().filter(ProcessHandle::isAlive).forEach(f ->
@@ -424,18 +430,23 @@ public class Launcher
 				{
 					String path = f.info().command().get();
 
-					//If sandboxed, only one process should be using this launcher (legacy java stuff)
-					//TODO: Remove after full native-image
-					if(SandboxType.get() != SandboxType.NONE && path.equals(launcherPath))
+					//Check if another updater is running
+					if(isNativeImage && !launcherPath.isBlank() && path.equals(launcherPath))
 					{
-						System.out.println("Found destroyable " + path);
+						System.out.println("Found destroyable1 " + path);
 						destroyables.add(f);
 						return;
 					}
 
 					if(path.startsWith(pokemmoDir.getAbsolutePath()))
 					{
-						System.out.println("Found destroyable " + path);
+						System.out.println("Found destroyable2 " + path);
+						destroyables.add(f);
+					}
+
+					if(f.info().command().get().toLowerCase(Locale.ROOT).contains("java") && Arrays.stream(f.info().arguments().get()).filter((a) -> a.contains("com.pokeemu.client.Client")).count() < 1)
+					{
+						System.out.println("Found destroyable3 " + path);
 						destroyables.add(f);
 					}
 				}
@@ -445,6 +456,8 @@ public class Launcher
 				// Skip!
 			}
 		});
+
+		System.out.println("=================================================");
 
 		if(!destroyables.isEmpty())
 		{
