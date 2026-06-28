@@ -499,8 +499,11 @@ public class Launcher
 			}
 			else
 			{
-				launcherUI.dispose();
-				System.exit(EXIT_CODE_SUCCESS);
+				if(SandboxType.get() != SandboxType.NONE)
+				{
+					launcherUI.dispose();
+					System.exit(EXIT_CODE_SUCCESS);
+				}
 			}
 		}
 	}
