@@ -16,15 +16,15 @@ public enum PokeMMOLocale
 	EN("English", "en", true),
 	FR("Français", "fr", true),
 	ES("Español", "es", true),
-	DE("Deutsche", "de", true),
+	DE("Deutsch", "de", true),
 	IT("Italiano", "it", true),
 	PT_BR("Português (Brasileiro)", "pt-BR", true),
 	KO("한국어", "ko", true),
 	JA("日本語", "ja", true),
-	ZH("中国人", "zh", true),
-	ZH_HANT("中國人", "zh-Hant", true),
+	ZH("简体中文", "zh", true),
+	ZH_HANT("繁體中文", "zh-Hant", true),
 	FIL("Filipino", "fil", true),
-	RU("Русские", "ru", false),
+	RU("Русский", "ru", false),
 	PL("Polski", "pl", false);
 
 	private final String display_name, lang_tag;
