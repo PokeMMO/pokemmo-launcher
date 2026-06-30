@@ -23,7 +23,7 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 This repository provides the bootstrap and update functionality for the following distribution-specific packaging repos, as well as serving as the updater for Windows and portable installations:
 
-- **Flatpak**: [PokeMMO/com.pokemmo.PokeMMO](https://github.com/PokeMMO/com.pokemmo.PokeMMO)
+- **Flatpak**: [flathub/com.pokemmo.PokeMMO](https://github.com/flathub/com.pokemmo.PokeMMO)
 - **Snap**: [PokeMMO/pokemmo-snap](https://github.com/PokeMMO/pokemmo-snap)
 
 ----
