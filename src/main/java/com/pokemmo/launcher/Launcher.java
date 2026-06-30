@@ -33,6 +33,7 @@ import com.pokemmo.launcher.updater.FeedManager;
 import com.pokemmo.launcher.updater.UpdateFile;
 import com.pokemmo.launcher.util.JREUtil;
 import com.pokemmo.launcher.util.Util;
+import com.pokemmo.launcher.util.WindowsUtil;
 
 /**
  * PokeMMO Launcher / Updater / Installer
@@ -570,6 +571,22 @@ public class Launcher
 		int counter = 0;
 
 		List<UpdateFile> to_download = new ArrayList<>();
+		UpdateFile vcRedist = null;
+
+		if(OS.get() == OS.WINDOWS && !WindowsUtil.isVC14RedistInstalled())
+		{
+			if(Arch.get() == Arch.ARM64)
+			{
+				vcRedist = new UpdateFile("VC_redist.arm64.exe", "b70ef586669a620a0a30a1156969c05c6a3831dc8f8bc992da75779d2a92f944", 11870816, false);
+				vcRedist.absoluteUrl = "https://download.visualstudio.microsoft.com/download/pr/57eef8ae-a341-46c3-b0bc-c041027b54cd/B70EF586669A620A0A30A1156969C05C6A3831DC8F8BC992DA75779D2A92F944/VC_redist.arm64.exe";
+			}
+			else
+			{
+				vcRedist = new UpdateFile("VC_redist.x64.exe", "843068991daaa1f73ad9f6239bce4d0f6a07a51f18c37ea2a867e9beca71295c", 18731856, false);
+				vcRedist.absoluteUrl = "https://download.visualstudio.microsoft.com/download/pr/ebdab8e5-1d7b-4d9f-a11b-cbb1720c3b12/843068991DAAA1F73AD9F6239BCE4D0F6A07A51F18C37EA2A867E9BECA71295C/VC_redist.x64.exe";
+			}
+			FeedManager.getFiles().add(vcRedist);
+		}
 
 		for(UpdateFile file : FeedManager.getFiles())
 		{
@@ -641,6 +658,11 @@ public class Launcher
 
 		if(repair)
 			clearCache();
+
+		if(vcRedist != null)
+		{
+			WindowsUtil.installVC(pokemmoDir, vcRedist);
+		}
 
 		networkExecutorService.shutdown();
 		isUpdating = false;
@@ -717,7 +739,11 @@ public class Launcher
 				continue;
 			}
 
-			if(!Util.downloadUrlToFile(httpClient, mirrors[mirror_index] + "/" + Config.UPDATE_CHANNEL.urlComponent() + "/current/client/" + file.name + "?v=" + file.getCacheBuster(), getFile(file.name + ".TEMPORARY"), progressListener))
+			String url = mirrors[mirror_index] + "/" + Config.UPDATE_CHANNEL.urlComponent() + "/current/client/" + file.name + "?v=" + file.getCacheBuster();
+			if(!file.absoluteUrl.isEmpty())
+				url = file.absoluteUrl;
+
+			if(!Util.downloadUrlToFile(httpClient, url, getFile(file.name + ".TEMPORARY"), progressListener))
 			{
 				launcherUI.showInfo("status.files.failed_download", file.name, mirror_index);
 				disabledMirrors.add(mirror_index);

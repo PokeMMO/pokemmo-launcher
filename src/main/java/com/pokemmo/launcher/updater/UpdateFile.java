@@ -15,6 +15,8 @@ public class UpdateFile
 	public final boolean only_if_not_exists;
 	public final int size;
 
+	public String absoluteUrl = "";
+
 	public String os = "";
 	public String arch = "";
 	public boolean executable = false;
