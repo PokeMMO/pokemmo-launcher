@@ -63,8 +63,14 @@ jobs:
           cp */nativeMacosARM64Compile/Launcher out/macos/arm64/PokeMMO-Updater
           cp */nativeLinuxX64Compile/Launcher out/linux/x64/PokeMMO-Updater
           cp */nativeLinuxARM64Compile/Launcher out/linux/arm64/PokeMMO-Updater
+          cd out && zip -r ../build.zip .
       - name: Upload Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
         with:
           name: build
           path: out
+      - name: Release
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b #v3.0.1
+        if: github.ref_type == 'tag'
+        with:
+          files: build.zip
