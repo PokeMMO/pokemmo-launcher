@@ -573,7 +573,8 @@ public class Launcher
 		List<UpdateFile> to_download = new ArrayList<>();
 		UpdateFile vcRedist = null;
 
-		if(OS.get() == OS.WINDOWS && !WindowsUtil.isVC14RedistInstalled())
+		//If we're already in a native image. this shouldn't run
+		if(OS.get() == OS.WINDOWS && !WindowsUtil.isVC14RedistInstalled() && System.getProperty("org.graalvm.nativeimage.imagecode") == null)
 		{
 			if(Arch.get() == Arch.ARM64)
 			{
