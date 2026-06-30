@@ -818,7 +818,7 @@ public class Launcher
 
 		if(FeedManager.MIN_LAUNCHER_VERSION > INSTALLER_VERSION)
 		{
-			launcherUI.showMessage(Config.getString(OS.get() == OS.MAC ? "status.update_available_mac" : "status.update_available"), Config.getString("status.title.update_available"), () ->
+			launcherUI.showMessage(Config.getString(OS.get() == OS.MAC ? "status.update_available" : "status.update_available_generic"), Config.getString("status.title.update_available"), () ->
 			{
 				launcherUI.openURL("https://pokemmo.com/downloads/mac/");
 				System.exit(EXIT_CODE_UNK_FAILURE);

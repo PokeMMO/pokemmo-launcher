@@ -25,7 +25,7 @@ for lang in zh fr de it ja ko ptbr es fil; do
 		fil) OUTPUT_FILENAME=MessagesBundle_fil.properties ; TL_LANGCODE=fil ;;
 	esac
 
-	curl -H "Authorization: Token $TL_APIKEY" https://translate.pokemmo.com/api/translations/client/unix-installer/$TL_LANGCODE/file/ -o $OUTPUT_FILENAME
+	curl -H "Authorization: Token $TL_APIKEY" https://translate.pokemmo.com/api/translations/client/launcher/$TL_LANGCODE/file/ -o $OUTPUT_FILENAME
 done
 
 opencc -i MessagesBundle_zh.properties -o MessagesBundle_zh_Hant.properties -c /usr/share/opencc/s2twp.json
