@@ -252,7 +252,7 @@ public class Launcher
 			{
 				try
 				{
-					revision = Integer.parseInt(new String(Files.readAllBytes(revisionFile.toPath())));
+					revision = Integer.parseInt(Files.readString(revisionFile.toPath()).trim());
 				}
 				catch(IOException | NumberFormatException e)
 				{
@@ -260,8 +260,7 @@ public class Launcher
 				}
 			}
 
-			// If our declared revision is invalid, repair
-			launcherUI.createUpdaterWorker(repair || (revision <= 0 || (FeedManager.MIN_REVISION > 0 && revision >= FeedManager.MIN_REVISION)));
+			launcherUI.createUpdaterWorker(repair || FeedManager.needsRepair(revision, FeedManager.MIN_REVISION));
 		}
 		else
 		{
