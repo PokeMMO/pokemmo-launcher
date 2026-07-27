@@ -183,6 +183,22 @@ public class FeedManager
 	}
 
 	/**
+	 * Whether an out of date client must take the repair path rather than a plain update.
+	 *
+	 * @param revision    the value read from revision.txt, or a non-positive number when it could not be read
+	 * @param minRevision the floor published by the main feed, or 0 when the feed omits the element
+	 */
+	public static boolean needsRepair(int revision, int minRevision)
+	{
+		if(revision <= 0)
+		{
+			return true;
+		}
+
+		return minRevision > 0 && revision < minRevision;
+	}
+
+	/**
 	 * A {@link DocumentBuilderFactory} with DTDs, external entities and XInclude switched off.
 	 */
 	static DocumentBuilderFactory secureDocumentBuilderFactory() throws ParserConfigurationException
