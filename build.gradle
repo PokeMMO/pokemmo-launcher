@@ -166,7 +166,8 @@ graalvmNative {
 
                     "--add-exports=org.graalvm.nativeimage.builder/com.oracle.svm.hosted=ALL-UNNAMED",
                     "-R:MaxHeapSize=384M",
-                    "-H:IncludeLocales=en,de,es,fr,it,ja,ko,pl,pt,pt-Latn-BR,zh-Hans,zh-CN,zh-HK,zh-TW,zh-Hant,nl,el,tr,fil,ru"
+                    "-H:IncludeLocales=en,de,es,fr,it,ja,ko,pl,pt,pt-Latn-BR,zh-Hans,zh-CN,zh-HK,zh-TW,zh-Hant,nl,el,tr,fil,ru",
+                    "-H:Preserve=package=org.eclipse.swt.accessibility.*"
             )
             jvmArgs.addAll("-Dfile.encoding=UTF8")
             sharedLibrary = false
@@ -206,14 +207,14 @@ graalvmNative {
             resources {
                 includedPatterns.addAll(".*\\.so\$")
             }
-            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.gtk.*", "-H:Preserve=package=org.eclipse.swt.internal.gtk3.*", "-H:Preserve=package=org.eclipse.swt.internal.gtk4.*")
+            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.gtk.*", "-H:Preserve=package=org.eclipse.swt.internal.gtk3.*", "-H:Preserve=package=org.eclipse.swt.internal.gtk4.*", "-H:Preserve=package=org.eclipse.swt.internal.cairo.*")
         }
         create("LinuxARM64") {
             classpath.setFrom(tasks.jarLinuxARM64)
             resources {
                 includedPatterns.addAll(".*\\.so\$")
             }
-            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.gtk.*", "-H:Preserve=package=org.eclipse.swt.internal.gtk3.*", "-H:Preserve=package=org.eclipse.swt.internal.gtk4.*")
+            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.gtk.*", "-H:Preserve=package=org.eclipse.swt.internal.gtk3.*", "-H:Preserve=package=org.eclipse.swt.internal.gtk4.*", "-H:Preserve=package=org.eclipse.swt.internal.cairo.*")
         }
         create("MacosARM64") {
             classpath.setFrom(tasks.jarMacosARM64)
