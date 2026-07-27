@@ -36,6 +36,14 @@ public class JREUtil
 		}
 
 		//Bundled
+		java = new File(pokemmoDir, "jre" + File.separator + "bin" + File.separator + "java" + (OS.get() == OS.WINDOWS ? ".exe" : ""));
+		if(java.exists() && java.isFile() && java.canExecute())
+		{
+			System.out.println("Found java from bundled jre: " + java.getAbsolutePath());
+			return java;
+		}
+
+		//Bundled
 		java = new File(pokemmoDir, "bin" + File.separator + "java" + (OS.get() == OS.WINDOWS ? ".exe" : ""));
 		if(java.exists() && java.isFile() && java.canExecute())
 		{
