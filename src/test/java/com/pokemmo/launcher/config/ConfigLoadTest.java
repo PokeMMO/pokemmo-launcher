@@ -1,5 +1,7 @@
 package com.pokemmo.launcher.config;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -8,17 +10,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import com.pokemmo.launcher.Launcher;
-import com.pokemmo.launcher.enums.PokeMMOLocale;
-import com.pokemmo.launcher.enums.UpdateChannel;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import com.pokemmo.launcher.Launcher;
+import com.pokemmo.launcher.enums.PokeMMOLocale;
+import com.pokemmo.launcher.enums.UpdateChannel;
 
 class ConfigLoadTest
 {
