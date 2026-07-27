@@ -144,41 +144,71 @@ public class Util
 
 	/**
 	 * Checks a Directory/Filepath combination to make sure it is safe.
+	 * <p>
+	 * Rejects anything an update feed has no business naming: absolute paths, drive-relative
+	 * paths such as {@code C:evil.exe}, NUL bytes, and any segment ending in a dot or a space,
+	 * which covers {@code .} and {@code ..}. Rejecting {@code ..} outright rather than
+	 * normalising it away avoids depending on the normalised result still landing inside dir.
+	 * Backslashes are folded to forward slashes first so Windows separators and UNC paths are
+	 * caught on every platform.
+	 * <p>
+	 * The containment check is lexical, so the result does not depend on what is on disk. An
+	 * install whose data/ or cache/ is a symlink to another disk still has every entry beneath it
+	 * accepted. A rejected entry is only logged, and if enough of them go the feed parses as empty
+	 * and the mirror is dropped.
 	 *
-	 * @param dir   current directory we are checking from
+	 * @param dir   the directory the entry must resolve inside
 	 * @param entry filepath we are checking
 	 * @return null if unsafe, otherwise relative path of file
 	 */
 	public static String sanitize(final File dir, final String entry)
 	{
-		if(entry.isEmpty())
+		if(entry == null || entry.isEmpty() || entry.indexOf('\0') >= 0)
 		{
 			return null;
 		}
 
-		if(new File(entry).isAbsolute())
+		final String forwardSlashed = entry.replace('\\', '/');
+
+		if(forwardSlashed.startsWith("/") || new File(entry).isAbsolute())
 		{
 			return null;
+		}
+
+		// A drive-relative name like "C:evil.exe" is not absolute by File's reckoning
+		if(forwardSlashed.length() > 1 && forwardSlashed.charAt(1) == ':')
+		{
+			return null;
+		}
+
+		// Win32 strips trailing dots and spaces from a path component when opening a file, so
+		// ".. " and "..." both reach the parent directory there while comparing equal to neither
+		// "." nor "..". No name in the feed ends in either character, so reject every segment
+		// that does rather than reimplementing the stripping rules.
+		for(String segment : forwardSlashed.split("/"))
+		{
+			if(segment.endsWith(".") || segment.endsWith(" "))
+			{
+				return null;
+			}
 		}
 
 		try
 		{
-			final String DirPath = dir.getPath() + File.separator;
-			final String EntryPath = new File(dir, entry).getPath();
+			final Path dirPath = dir.toPath().toAbsolutePath().normalize();
+			final Path entryPath = dirPath.resolve(forwardSlashed).normalize();
 
-			if(!EntryPath.startsWith(DirPath))
+			if(!entryPath.startsWith(dirPath) || entryPath.equals(dirPath))
 			{
 				return null;
 			}
 
-			return EntryPath.substring(DirPath.length());
+			return dirPath.relativize(entryPath).toString();
 		}
 		catch(Exception e)
 		{
-			// Ignored
+			return null;
 		}
-
-		return null;
 	}
 
 	/**
