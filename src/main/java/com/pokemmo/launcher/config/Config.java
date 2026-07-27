@@ -15,6 +15,7 @@ import com.pokemmo.launcher.enums.PokeMMOLocale;
 import com.pokemmo.launcher.enums.SandboxType;
 import com.pokemmo.launcher.enums.UpdateChannel;
 import com.pokemmo.launcher.ui.shared.LocaleAwareElementManager;
+import com.pokemmo.launcher.util.Util;
 
 /**
  * @author Kyu
@@ -166,10 +167,13 @@ public class Config
 		if(SandboxType.get() == SandboxType.MACOS_APP)
 			return new File(userHome, "/Library/Application Support/com.pokeemu.macos");
 
-		if(System.getenv("SNAP_USER_COMMON") != null)
-			return new File(System.getenv("SNAP_USER_COMMON"));
-		else if(System.getenv("XDG_CONFIG_HOME") != null)
-			return new File(System.getenv("XDG_CONFIG_HOME"));
+		String snapUserCommon = Util.nonEmptyEnv(System.getenv(), "SNAP_USER_COMMON");
+		String xdgConfigHome = Util.nonEmptyEnv(System.getenv(), "XDG_CONFIG_HOME");
+
+		if(snapUserCommon != null)
+			return new File(snapUserCommon);
+		else if(xdgConfigHome != null)
+			return new File(xdgConfigHome);
 		return new File(userHome, ".config");
 	}
 

@@ -141,10 +141,13 @@ public class Launcher
 
 		if(SandboxType.get() == SandboxType.FLATPAK || SandboxType.get() == SandboxType.SNAPCRAFT)
 		{
-			if(System.getenv("SNAP_USER_COMMON") != null)
-				baseDir = new File(System.getenv("SNAP_USER_COMMON"));
-			else if(System.getenv("XDG_DATA_HOME") != null)
-				baseDir = new File(System.getenv("XDG_DATA_HOME"));
+			String snapUserCommon = Util.nonEmptyEnv(System.getenv(), "SNAP_USER_COMMON");
+			String xdgDataHome = Util.nonEmptyEnv(System.getenv(), "XDG_DATA_HOME");
+
+			if(snapUserCommon != null)
+				baseDir = new File(snapUserCommon);
+			else if(xdgDataHome != null)
+				baseDir = new File(xdgDataHome);
 			else
 				baseDir = new File(userHome, ".local" + File.separator + "share");
 		}
