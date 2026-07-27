@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -964,8 +965,56 @@ public class Launcher
 		return stackTraceStringWriter.toString();
 	}
 
+	/**
+	 * Chooses the directory SWT unpacks its bundled JNI libraries into, or null to leave SWT's own
+	 * $user.home/.swt default in place.
+	 * <p>
+	 * Only a sandboxed run needs the override. Under snap, user.home comes from getpwuid rather
+	 * than $HOME, and the home interface grants neither dot-directories nor the AppArmor map
+	 * permission at the home root, so whichever location SWT picks produces a library it cannot
+	 * dlopen. $SNAP_USER_COMMON and the flatpak $XDG_DATA_HOME are private to the application and
+	 * allow both. Everywhere else the default works, and a directory other local users can write
+	 * would let them plant a library that SWT loads in preference to the bundled one.
+	 *
+	 * @param sandbox the sandbox this process runs in
+	 * @param env     the process environment
+	 * @param version stamped into the name so an upgrade cannot reuse the previous natives
+	 * @return the directory to unpack into, or null to leave swt.library.path unset
+	 */
+	static String resolveSwtLibraryPath(SandboxType sandbox, Map<String, String> env, int version)
+	{
+		if(sandbox == SandboxType.SNAPCRAFT)
+		{
+			String snapUserCommon = env.get("SNAP_USER_COMMON");
+			if(snapUserCommon != null && !snapUserCommon.isEmpty())
+				return snapUserCommon + File.separator + "swt-" + version;
+		}
+
+		if(sandbox == SandboxType.FLATPAK)
+		{
+			String xdgDataHome = env.get("XDG_DATA_HOME");
+			if(xdgDataHome != null && !xdgDataHome.isEmpty())
+				return xdgDataHome + File.separator + "swt-" + version;
+		}
+
+		return null;
+	}
+
 	public static void main(String[] args)
 	{
+		// Must happen before any SWT class loads, because Library reads user.home in a static
+		// initialiser. Only set when the directory is usable: a non-null swt.library.path makes
+		// SWT skip its own fallback, so an unwritable one turns a soft failure into a hard one.
+		String swtLibraryPath = resolveSwtLibraryPath(SandboxType.get(), System.getenv(), INSTALLER_VERSION);
+		if(swtLibraryPath != null)
+		{
+			File swtLibraryDir = new File(swtLibraryPath);
+			if((swtLibraryDir.isDirectory() || swtLibraryDir.mkdirs()) && swtLibraryDir.canWrite())
+				System.setProperty("swt.library.path", swtLibraryPath);
+			else
+				System.out.println("SWT library path " + swtLibraryPath + " is not usable, leaving the SWT default");
+		}
+
 		var argsList = Arrays.asList(args);
 		if(Arrays.asList(args).contains("--force-ui") || Arrays.asList(args).contains("--launch") || SandboxType.get() != SandboxType.NONE)
 		{
