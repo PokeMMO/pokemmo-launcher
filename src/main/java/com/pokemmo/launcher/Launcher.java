@@ -200,7 +200,8 @@ public class Launcher
 
 		if(ENABLE_DELAY_START)
 		{
-			launcherUI.schedule(2000, () -> run2(repair));
+			// schedule() fires on the UI thread, so hand the work straight back off it
+			launcherUI.schedule(2000, () -> launcherUI.exec(() -> run2(repair)));
 			launcherUI.enterEventLoop();
 			return;
 		}

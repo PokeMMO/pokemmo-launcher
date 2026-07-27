@@ -137,6 +137,14 @@ public interface LauncherUI
 
 	}
 
+	/**
+	 * Runs a task off the UI thread. Blocking work must go through this, never through
+	 * {@link #schedule(int, Runnable)}, or the window stops repainting while it runs.
+	 */
 	void exec(Runnable runnable);
+
+	/**
+	 * Runs a task on the UI thread after the given delay.
+	 */
 	void schedule(int delayMs, Runnable runnable);
 }
