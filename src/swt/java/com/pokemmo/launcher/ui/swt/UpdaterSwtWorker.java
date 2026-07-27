@@ -42,20 +42,22 @@ public class UpdaterSwtWorker
 
             try
             {
-				parent.createPokemmoDir();
-				parent.createSymlinkedDirectories();
+                parent.createPokemmoDir();
+                parent.createSymlinkedDirectories();
             }
             catch (Exception e)
             {
                 e.printStackTrace();
                 failed.add(e);
+                success = false;
             }
             finally
             {
                 if (success)
                 {
-                    parent.doUpdate(repair);
-                    launcherUI.setCanStart();
+                    // Only an update that matched every feed hash may enable the launch button
+                    if (parent.doUpdate(repair))
+                        launcherUI.setCanStart();
                 }
                 else
                 {

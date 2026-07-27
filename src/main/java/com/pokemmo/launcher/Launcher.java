@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.mizosoft.methanol.Methanol;
 import com.github.mizosoft.methanol.ProgressTracker;
@@ -568,10 +569,16 @@ public class Launcher
 		return invalidFiles.isEmpty();
 	}
 
-	public void doUpdate(boolean repair)
+	/**
+	 * Brings the install in line with the loaded feed.
+	 *
+	 * @return true when every file the feed lists is present with the hash it publishes. False
+	 * means the install is still wrong, so the caller must not enable the launch button.
+	 */
+	public boolean doUpdate(boolean repair)
 	{
 		if(isUpdating)
-			return;
+			return false;
 
 		isUpdating = true;
 
@@ -625,7 +632,9 @@ public class Launcher
 			if(!f.getParentFile().mkdirs() && !f.getParentFile().exists())
 			{
 				launcherUI.showError(Config.getString("error.dir_not_accessible", f.getParentFile(), "DIR_8"), "", () -> System.exit(EXIT_CODE_IO_FAILURE));
-				return;
+				networkExecutorService.shutdown();
+				isUpdating = false;
+				return false;
 			}
 
 			String checksum_sha256 = file.sha256;
@@ -651,36 +660,60 @@ public class Launcher
 			launcherUI.setStatus("status.game_verified", 90);
 			launcherUI.setStatus("status.ready", 100);
 			isUpdating = false;
-			return;
+			networkExecutorService.shutdown();
+			return true;
 		}
 
 		launcherUI.setStatus("status.downloading", 0);
 
 		Phaser phaser = new Phaser(to_download.size() + 1);
+		// Counted rather than a failure flag, so a task killed before it can report anything is
+		// still missing from the total below
+		AtomicInteger downloaded = new AtomicInteger();
 
 		lastSpeedTime = System.currentTimeMillis();
 		for(UpdateFile file : to_download)
 		{
 			networkExecutorService.submit(() ->
 			{
-				launcherUI.addDetail("status.files.downloading", getProgress(to_download), file.name);
-
-				if(downloadFile(file, (progress -> {
-					file.downloadedBytes = progress.totalBytesTransferred();
-
-					launcherUI.updateProgress(getProgress(to_download));
-				})))
+				try
 				{
-					phaser.arrive();
+					launcherUI.addDetail("status.files.downloading", getProgress(to_download), file.name);
+
+					if(downloadFile(file, (progress -> {
+						file.downloadedBytes = progress.totalBytesTransferred();
+
+						launcherUI.updateProgress(getProgress(to_download));
+					})))
+					{
+						downloaded.incrementAndGet();
+					}
+					else
+					{
+						launcherUI.showError(Config.getString("error.download_error"), "", () -> System.exit(EXIT_CODE_NETWORK_FAILURE));
+					}
 				}
-				else
+				finally
 				{
-					launcherUI.showError(Config.getString("error.download_error"), "", () -> System.exit(EXIT_CODE_NETWORK_FAILURE));
+					// Exactly one arrival per task on every path, or the wait below never advances
+					phaser.arrive();
 				}
 			});
 		}
 
 		phaser.arriveAndAwaitAdvance();
+
+		// A file that is missing or still has the wrong bytes means the install does not match the
+		// signed feed. showError only queues a dialogue, so nothing past here may run on that
+		// path: clearCache() and installVC() would act on unverified bytes and the status lines
+		// would tell the user the install is ready.
+		if(downloaded.get() != to_download.size())
+		{
+			networkExecutorService.shutdown();
+			isUpdating = false;
+			launcherUI.updateDLSpeed(-1);
+			return false;
+		}
 
 		if(repair)
 			clearCache();
@@ -696,6 +729,7 @@ public class Launcher
 		launcherUI.updateDLSpeed(-1);
 		launcherUI.showInfo("status.check_success");
 		launcherUI.setStatus("status.ready", 100);
+		return true;
 	}
 
 	private long lastSpeedTime = 0;
