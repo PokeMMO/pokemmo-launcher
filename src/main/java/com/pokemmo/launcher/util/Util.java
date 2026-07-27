@@ -299,6 +299,30 @@ public class Util
 		return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
 	}
 
+	/**
+	 * Sets the POSIX execute bit on a file the feed marks executable, if it is not already set.
+	 *
+	 * @param target    the file on disk
+	 * @param wanted    the feed's executable flag for that file
+	 * @param isWindows true to do nothing, as Windows has no execute bit to repair
+	 * @return true when the bit was missing and has now been set
+	 */
+	public static boolean ensureExecutable(File target, boolean wanted, boolean isWindows)
+	{
+		if(isWindows || !wanted || !target.isFile() || target.canExecute())
+		{
+			return false;
+		}
+
+		if(!target.setExecutable(true, false))
+		{
+			System.out.println("Failed to set the execute bit on " + target);
+			return false;
+		}
+
+		return true;
+	}
+
 	public static boolean isEnv(String key)
 	{
 		String val  = System.getenv(key);
