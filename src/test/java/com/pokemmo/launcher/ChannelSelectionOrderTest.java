@@ -11,6 +11,7 @@ import com.pokemmo.launcher.config.ConfigTestAccess;
 import com.pokemmo.launcher.enums.UpdateChannel;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -26,6 +27,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ChannelSelectionOrderTest
 {
 	private final UpdateChannel channel = Config.UPDATE_CHANNEL;
+
+	@BeforeEach
+	void enableConfig()
+	{
+		Launcher.ENABLE_CONFIG = true;
+	}
 
 	@AfterEach
 	void restoreDefaults()

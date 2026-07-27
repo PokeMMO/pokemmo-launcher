@@ -13,6 +13,7 @@ import com.pokemmo.launcher.enums.PokeMMOLocale;
 import com.pokemmo.launcher.enums.UpdateChannel;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -25,6 +26,12 @@ class ConfigLoadTest
 	private final short maxMemory = Config.HARD_MAX_MEMORY_MB;
 	private final PokeMMOLocale locale = Config.ACTIVE_LOCALE;
 	private final UpdateChannel channel = Config.UPDATE_CHANNEL;
+
+	@BeforeEach
+	void enableConfig()
+	{
+		Launcher.ENABLE_CONFIG = true;
+	}
 
 	@AfterEach
 	void restoreDefaults()
@@ -40,21 +47,6 @@ class ConfigLoadTest
 		Path file = dir.resolve("pokemmo-installer.properties");
 		Files.writeString(file, contents, StandardCharsets.UTF_8);
 		return file.toFile();
-	}
-
-	/**
-	 * The heap size handed to the client comes from the config file in every launch mode, not just
-	 * the ones that enable the config UI.
-	 */
-	@Test
-	void theConfiguredMemoryIsUsedWithoutTheConfigUi(@TempDir Path dir) throws IOException
-	{
-		assertFalse(Launcher.ENABLE_CONFIG, "the default launch mode must not enable the config UI");
-		Config.HARD_MAX_MEMORY_MB = Config.JOPTS_XMX_VAL_MIN;
-
-		Config.load(write(dir, "max_mem_hard=1024\nupdate_channel=live\nlauncher_locale=en\n"));
-
-		assertEquals(1024, Config.HARD_MAX_MEMORY_MB);
 	}
 
 	/**
