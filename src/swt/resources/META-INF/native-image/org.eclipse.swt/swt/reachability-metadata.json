@@ -21,6 +21,16 @@
       "allDeclaredConstructors": true
     },
     {
+      "type": "org.eclipse.swt.internal.BidiUtil",
+      "jniAccessible": true,
+      "allPublicConstructors": true,
+      "allPublicFields": true,
+      "allPublicMethods": true,
+      "allDeclaredFields": true,
+      "allDeclaredMethods": true,
+      "allDeclaredConstructors": true
+    },
+    {
       "type": "org.eclipse.swt.internal.gtk.GTypeInfo",
       "jniAccessible": true,
       "allDeclaredFields": true

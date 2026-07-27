@@ -8,35 +8,30 @@ import com.pokemmo.launcher.ui.shared.LocaleAwareElementManager;
 import com.pokemmo.launcher.ui.shared.LocaleAwareInterface;
 import com.pokemmo.launcher.ui.shared.LocaleAwareStringBundle;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
 
 /**
- * SWT {@link StyledText} (multi-line, wrapped, scrollable) that supports locale-aware
- * content re-resolution and properly respects system dark mode colors on macOS.
+ * SWT {@link Text} (multi-line, wrapped, scrollable) that supports locale-aware
+ * content re-resolution.
  *
  * @author Kyu
  */
-public class LocaleAwareTextArea extends StyledText implements LocaleAwareInterface
+public class LocaleAwareTextArea extends Text implements LocaleAwareInterface
 {
     private final List<LocaleAwareStringBundle> appendedLines = new ArrayList<>();
 
     public LocaleAwareTextArea(Composite parent, int style)
     {
-        super(parent, style | SWT.V_SCROLL);
-        setWordWrap(true);
+        super(parent, style | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
         setEditable(false);
-        setLeftMargin(6);
-        setRightMargin(6);
-        setTopMargin(6);
-        setBottomMargin(6);
         LocaleAwareElementManager.instance.addElement(this);
     }
 
     @Override
     protected void checkSubclass()
     {
-        // Allow subclassing of SWT StyledText
+        // Allow subclassing of SWT Text
     }
 
     @Override
@@ -69,9 +64,6 @@ public class LocaleAwareTextArea extends StyledText implements LocaleAwareInterf
         String resolved = Config.getString(str, params);
         appendedLines.add(bundle);
         super.append(resolved);
-
-        // Auto-scroll to bottom
-        setTopIndex(getLineCount() - 1);
     }
 
     @Override
