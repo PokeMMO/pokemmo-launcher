@@ -595,6 +595,11 @@ public class Launcher
 			{
 				invalidFiles.add(file);
 			}
+			// Only reached once the hash matched, so the bit is never set on unverified bytes
+			else if(Util.ensureExecutable(f, file.executable, OS.get() == OS.WINDOWS))
+			{
+				System.out.println("Repaired the execute bit on " + file.name);
+			}
 		}
 
 		return invalidFiles.isEmpty();
@@ -681,6 +686,11 @@ public class Launcher
 				}
 
 				to_download.add(file);
+			}
+			// Only reached once the hash matched, so the bit is never set on unverified bytes
+			else if(Util.ensureExecutable(f, file.executable, OS.get() == OS.WINDOWS))
+			{
+				System.out.println("Repaired the execute bit on " + file.name);
 			}
 
 			counter++;
