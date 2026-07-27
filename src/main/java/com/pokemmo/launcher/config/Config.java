@@ -50,13 +50,14 @@ public class Config
 	}
 
 	/**
-	 * Applies a configuration file if one exists, keeping the defaults if it does not. Unlike
-	 * {@link #save()} this is not gated on {@link Launcher#ENABLE_CONFIG}: a file the user already
-	 * has must take effect however the launcher was started, including a plain double-click, which
-	 * never enables the config UI.
+	 * Applies a configuration file if one exists, keeping the defaults if it does not.
+	 * This is gated on {@link Launcher#ENABLE_CONFIG}. Updater mode should not load configuration.
 	 */
 	static void load(File configFile)
 	{
+		if(!Launcher.ENABLE_CONFIG)
+			return;
+
 		Properties props = new Properties();
 		try
 		{

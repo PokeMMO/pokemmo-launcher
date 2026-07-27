@@ -1046,11 +1046,6 @@ public class Launcher
 		// not selectable yet, so this has to run first.
 		launcher.resolveBaseDir();
 
-		// Every launch mode reads the config, so a value the user set applies to the client even
-		// when the launcher runs headless. Config.load() only reads: whether anything gets written
-		// back is down to ENABLE_CONFIG, set below by a flag or by running under a sandbox.
-		Config.load();
-
 		var argsList = Arrays.asList(args);
 		if(Arrays.asList(args).contains("--force-ui") || Arrays.asList(args).contains("--launch") || SandboxType.get() != SandboxType.NONE)
 		{
@@ -1058,6 +1053,8 @@ public class Launcher
 			System.out.println("Enabling configuration...");
 			Runtime.getRuntime().addShutdownHook(new Thread(Config::save));
 		}
+
+		Config.load();
 
 		String httpAuthPassword = "";
 		boolean repair = false;
