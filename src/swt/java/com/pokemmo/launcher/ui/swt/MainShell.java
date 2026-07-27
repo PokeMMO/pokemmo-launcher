@@ -465,6 +465,12 @@ public class MainShell implements LauncherUI
     @Override
     public void dispose()
     {
+        if (!display.isDisposed() && display.getThread() != Thread.currentThread())
+        {
+            display.asyncExec(this::dispose);
+            return;
+        }
+
         if (monospacedFont != null && !monospacedFont.isDisposed())
         {
             monospacedFont.dispose();
@@ -498,6 +504,12 @@ public class MainShell implements LauncherUI
 
     public void open()
     {
+        if (display.getThread() != Thread.currentThread())
+        {
+            display.asyncExec(this::open);
+            return;
+        }
+
         shell.open();
     }
 
@@ -765,12 +777,12 @@ public class MainShell implements LauncherUI
 	@Override
 	public void schedule(int delayMs, Runnable runnable)
 	{
-		Display.getDefault().timerExec(delayMs, runnable);
+		display.timerExec(delayMs, runnable);
 	}
 
 	@Override
 	public void exec(Runnable runnable)
 	{
-		Display.getDefault().asyncExec(runnable);
+		executorService.execute(runnable);
 	}
 }
