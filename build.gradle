@@ -271,11 +271,3 @@ task nativeCompileCI()
             dependsOn "nativeLinuxX64Compile"
     }
 }
-
-task dist(type: GradleBuild) {
-    buildName "dist"
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['clean', 'jar']
-}
-
-assemble.dependsOn dist
