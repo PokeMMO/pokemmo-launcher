@@ -1134,6 +1134,10 @@ public class Launcher
 
 		Config.load();
 
+		//Always force UI on windows
+		if(OS.get() == OS.WINDOWS)
+			ENABLE_HEADLESS_LAUNCH = false;
+
 		String httpAuthPassword = "";
 		boolean repair = false;
 
