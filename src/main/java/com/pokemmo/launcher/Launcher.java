@@ -1232,6 +1232,7 @@ public class Launcher
 			if(arg.equals("-repair:true") || arg.equals("--repair"))
 			{
 				ENABLE_HEADLESS_LAUNCH = false;
+				ENABLE_DELAY_START = true;
 				repair = true;
 				continue;
 			}
