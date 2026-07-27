@@ -355,6 +355,22 @@ public class Launcher
 		if(!pokemmoExecutable.exists() || (OS.get() == OS.WINDOWS && Arch.get() == Arch.X64))
 			isJava = JREUtil.isPokeMMOJar(new File(pokemmoDir, "PokeMMO.exe"));
 
+		// The feed is the only source of hashes, so a file it does not list has never been
+		// verified. This runs once isJava is known because the two branches execute different
+		// files, and the native path is absent on the branch that runs the jar. A file that is
+		// not there at all is left to the branches below, which say so more precisely.
+		String launchTarget = launchTargetName(pokemmoDir, pokemmoExecutable, isJava);
+		File launchFile = new File(pokemmoDir, launchTarget);
+		if(launchFile.exists() && System.getenv("POKEMMO_NOVERIFY") == null && !FeedManager.declares(launchTarget))
+		{
+			System.out.println("Refusing to launch unverified " + launchTarget);
+			String message = FeedManager.getFiles().isEmpty()
+					? Config.getString("error.client_no_feed", launchFile.getAbsolutePath())
+					: Config.getString("error.client_not_in_feed", launchFile.getAbsolutePath());
+			launcherUI.showError(message, Config.getString("status.title.failed_startup"), () -> System.exit(EXIT_CODE_IO_FAILURE));
+			return;
+		}
+
 		if(isJava)
 		{
 			System.out.println("Launching legacy java...");
@@ -436,6 +452,21 @@ public class Launcher
 
 		launcherUI.dispose();
 		System.exit(0);
+	}
+
+	/**
+	 * Names the file {@link #start()} hands to the OS, relative to the install directory, which is
+	 * the form the feed lists names in. The legacy branch runs PokeMMO.exe under a JVM; every
+	 * other branch runs the platform binary under bin/. On Windows x64 both are PokeMMO.exe.
+	 *
+	 * @param pokemmoDir        the install directory
+	 * @param pokemmoExecutable the platform binary start() picked for this OS and arch
+	 * @param isJava            whether PokeMMO.exe was found to be a jar and will be run as one
+	 */
+	static String launchTargetName(File pokemmoDir, File pokemmoExecutable, boolean isJava)
+	{
+		File target = isJava ? new File(pokemmoDir, "PokeMMO.exe") : pokemmoExecutable;
+		return pokemmoDir.toPath().relativize(target.toPath()).toString();
 	}
 
 	private void checkForRunning()

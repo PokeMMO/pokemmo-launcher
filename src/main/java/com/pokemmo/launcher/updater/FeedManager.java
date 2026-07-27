@@ -284,4 +284,30 @@ public class FeedManager
 
 		return parsed;
 	}
+
+	/**
+	 * Whether the loaded update feed lists the given path, relative to the install directory.
+	 * <p>
+	 * Only listed files carry a sha256 to check the bytes on disk against. Entries flagged
+	 * only_if_not_exists are excluded, because {@link UpdateFile#shouldDownload(File)} skips them
+	 * once the target exists, so verification never hashes them and being listed would not mean
+	 * the bytes were ever checked.
+	 */
+	public static boolean declares(String relativePath)
+	{
+		String needle = relativePath.replace('\\', '/');
+		for(UpdateFile file : files)
+		{
+			if(file.only_if_not_exists)
+			{
+				continue;
+			}
+
+			if(file.name.replace('\\', '/').equals(needle))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 }
