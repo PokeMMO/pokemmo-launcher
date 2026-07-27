@@ -139,7 +139,7 @@ public class MainShell implements LauncherUI
         centerComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         centerComposite.setLayout(new GridLayout(1, false));
 
-        detailArea = new LocaleAwareTextArea(centerComposite, SWT.BORDER);
+        detailArea = new LocaleAwareTextArea(centerComposite, SWT.BORDER | SWT.READ_ONLY);
         detailArea.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         monospacedFont = SwtUtil.createMonospacedFont(display, 14);
         detailArea.setFont(monospacedFont);
