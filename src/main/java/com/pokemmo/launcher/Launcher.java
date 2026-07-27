@@ -1164,7 +1164,13 @@ public class Launcher
 
 		Methanol.Builder builder = Methanol.newBuilder()
 				.followRedirects(HttpClient.Redirect.NORMAL)
-				.connectTimeout(Duration.ofSeconds(20));
+				.connectTimeout(Duration.ofSeconds(20))
+				// Bounds the wait for response headers, so a mirror that completes the handshake
+				// and then goes quiet is given up on instead of hanging the launcher.
+				.headersTimeout(Duration.ofSeconds(20))
+				// Bounds idle time between body chunks rather than total transfer time, so it
+				// stays clear of the large .pak downloads this client is shared with.
+				.readTimeout(Duration.ofSeconds(30));
 
 		if(!httpAuthPassword.isEmpty())
 		{
