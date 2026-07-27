@@ -116,40 +116,62 @@ public class Launcher
 	public static Methanol httpClient;
 	public static final String httpClientUserAgent = "Mozilla/5.0 (PokeMMO; Launcher v"+ Launcher.INSTALLER_VERSION_CODE+")";
 
-	private void run(boolean repair)
+	/**
+	 * Resolves userHome and baseDir, and marks every channel that already has a client directory
+	 * under baseDir selectable.
+	 * <p>
+	 * Must run before {@link Config#load()}: load() applies an update_channel only when that
+	 * channel is already selectable, so one marked after the load is dropped and the
+	 * {@code Config::save} shutdown hook writes live back over it.
+	 * <p>
+	 * Only pokemmoDir depends on the channel, and {@link #run(boolean)} resolves it once the
+	 * config has been read.
+	 */
+	private void resolveBaseDir()
 	{
 		userHome = new File(System.getProperty("user.home"));
 		//Use current working directory if not overridden
-		pokemmoDir = new File(".").toPath().toAbsolutePath().normalize().toFile();
+		baseDir = new File(".").toPath().toAbsolutePath().normalize().toFile();
 
-		baseDir = pokemmoDir;
-
-		if(SandboxType.get() != null)
+		if(SandboxType.get() == SandboxType.MACOS_APP)
 		{
-			if(SandboxType.get() == SandboxType.MACOS_APP)
-			{
-				baseDir = new File(userHome, "Library/Application Support/com.pokeemu.macos");
-				pokemmoDir = new File(baseDir, "pokemmo-client-" + Config.UPDATE_CHANNEL.name());
-			}
-
-			if(SandboxType.get() == SandboxType.FLATPAK || SandboxType.get() == SandboxType.SNAPCRAFT)
-			{
-				if(System.getenv("SNAP_USER_COMMON") != null)
-					baseDir = new File(System.getenv("SNAP_USER_COMMON"));
-				else if(System.getenv("XDG_DATA_HOME") != null)
-					baseDir = new File(System.getenv("XDG_DATA_HOME"));
-				else
-					baseDir = new File(userHome, ".local" + File.separator + "share");
-
-				pokemmoDir = new File(baseDir, "pokemmo-client-" + Config.UPDATE_CHANNEL.name());
-			}
-
-			for(UpdateChannel channel : UpdateChannel.values())
-			{
-				if(new File(baseDir, "pokemmo-client-" + channel.name()).exists())
-					channel.setSelectable(true);
-			}
+			baseDir = new File(userHome, "Library/Application Support/com.pokeemu.macos");
 		}
+
+		if(SandboxType.get() == SandboxType.FLATPAK || SandboxType.get() == SandboxType.SNAPCRAFT)
+		{
+			if(System.getenv("SNAP_USER_COMMON") != null)
+				baseDir = new File(System.getenv("SNAP_USER_COMMON"));
+			else if(System.getenv("XDG_DATA_HOME") != null)
+				baseDir = new File(System.getenv("XDG_DATA_HOME"));
+			else
+				baseDir = new File(userHome, ".local" + File.separator + "share");
+		}
+
+		markSelectableChannels(baseDir);
+	}
+
+	/**
+	 * Marks a channel selectable when baseDir already holds its client directory, which is what
+	 * puts it in the config dialog's list.
+	 */
+	static void markSelectableChannels(File baseDir)
+	{
+		for(UpdateChannel channel : UpdateChannel.values())
+		{
+			if(new File(baseDir, "pokemmo-client-" + channel.name()).exists())
+				channel.setSelectable(true);
+		}
+	}
+
+	private void run(boolean repair)
+	{
+		// A sandboxed install keeps each channel in its own directory under baseDir. Everywhere
+		// else the client sits in the working directory baseDir was resolved from.
+		if(SandboxType.get() == SandboxType.MACOS_APP || SandboxType.get() == SandboxType.FLATPAK || SandboxType.get() == SandboxType.SNAPCRAFT)
+			pokemmoDir = new File(baseDir, "pokemmo-client-" + Config.UPDATE_CHANNEL.name());
+		else
+			pokemmoDir = baseDir;
 
 		launcherUI = createLauncherUI();
 		if(!Launcher.ENABLE_HEADLESS_LAUNCH)
@@ -345,11 +367,14 @@ public class Launcher
 
 			args.add(java.getAbsolutePath());
 			args.add("-XX:+IgnoreUnrecognizedVMOptions");
-			args.add("-Dfile.encoding=UTF-8");
 			args.add("-XX:+UseZGC");
+			// Without this ZGC is single-generation on Java 21; newer runtimes ignore the flag
+			args.add("-XX:+ZGenerational");
 			args.add("-XX:+UnlockDiagnosticVMOptions");
 			args.add("-XX:-UseAESCTRIntrinsics");
 			args.add("-XX:-UseAESIntrinsics");
+			args.add("-Xms192M");
+			args.add("-Xmx" + Config.HARD_MAX_MEMORY_MB + "M");
 			args.add("-Dfile.encoding=UTF-8");
 
 			if(OS.get() == OS.MAC)
@@ -1015,12 +1040,22 @@ public class Launcher
 				System.out.println("SWT library path " + swtLibraryPath + " is not usable, leaving the SWT default");
 		}
 
+		Launcher launcher = new Launcher();
+
+		// Marks the installed channels selectable. Config.load() drops an update_channel that is
+		// not selectable yet, so this has to run first.
+		launcher.resolveBaseDir();
+
+		// Every launch mode reads the config, so a value the user set applies to the client even
+		// when the launcher runs headless. Config.load() only reads: whether anything gets written
+		// back is down to ENABLE_CONFIG, set below by a flag or by running under a sandbox.
+		Config.load();
+
 		var argsList = Arrays.asList(args);
 		if(Arrays.asList(args).contains("--force-ui") || Arrays.asList(args).contains("--launch") || SandboxType.get() != SandboxType.NONE)
 		{
 			ENABLE_CONFIG = true;
 			System.out.println("Enabling configuration...");
-			Config.load();
 			Runtime.getRuntime().addShutdownHook(new Thread(Config::save));
 		}
 
@@ -1146,6 +1181,6 @@ public class Launcher
 
 		httpClient = builder.build();
 
-		new Launcher().run(repair);
+		launcher.run(repair);
 	}
 }

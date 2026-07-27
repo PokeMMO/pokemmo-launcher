@@ -23,13 +23,19 @@ public class Config
 {
 	public static final short JOPTS_XMX_VAL_MIN = 384;
 	public static final short JOPTS_XMX_VAL_MAX = 1024;
+	/**
+	 * The heap ceiling used when nothing sets one. Both the field initialiser below and
+	 * {@link #load(File)}'s fallback use it, so the client gets the same limit whether the
+	 * configuration file is missing, unreadable or malformed, or simply omits this key.
+	 */
+	public static final short JOPTS_XMX_VAL_DEFAULT = 512;
 	public static final int NETWORK_THREADS_MAX = 4;
 
 	public static int NETWORK_THREADS = 4;
 
 	public static UpdateChannel UPDATE_CHANNEL = UpdateChannel.live;
 
-	public static short HARD_MAX_MEMORY_MB = JOPTS_XMX_VAL_MIN;
+	public static short HARD_MAX_MEMORY_MB = JOPTS_XMX_VAL_DEFAULT;
 
 	public static PokeMMOLocale ACTIVE_LOCALE = PokeMMOLocale.getDefaultLocale();
 	private static ResourceBundle STRINGS = ACTIVE_LOCALE.getStrings();
@@ -40,17 +46,27 @@ public class Config
 
 	public static void load()
 	{
-		if(!Launcher.ENABLE_CONFIG)
-			return;
+		load(getConfigFile());
+	}
 
+	/**
+	 * Applies a configuration file if one exists, keeping the defaults if it does not. Unlike
+	 * {@link #save()} this is not gated on {@link Launcher#ENABLE_CONFIG}: a file the user already
+	 * has must take effect however the launcher was started, including a plain double-click, which
+	 * never enables the config UI.
+	 */
+	static void load(File configFile)
+	{
 		Properties props = new Properties();
 		try
 		{
-			props.load(new FileReader(getConfigFile()));
+			props.load(new FileReader(configFile));
 		}
-		catch(IOException e)
+		catch(IOException | IllegalArgumentException e)
 		{
-			return; // Use default properties
+			// Missing, unreadable, or malformed: use the default properties. Properties.load
+			// throws IllegalArgumentException on a bad unicode escape.
+			return;
 		}
 
 		try
@@ -65,7 +81,7 @@ public class Config
 				NETWORK_THREADS = NETWORK_THREADS_MAX;
 			}
 
-			HARD_MAX_MEMORY_MB = Short.parseShort(props.getProperty("max_mem_hard", "512"));
+			HARD_MAX_MEMORY_MB = Short.parseShort(props.getProperty("max_mem_hard", Short.toString(JOPTS_XMX_VAL_DEFAULT)));
 
 			if(HARD_MAX_MEMORY_MB < JOPTS_XMX_VAL_MIN)
 			{
@@ -78,7 +94,19 @@ public class Config
 
 			ACTIVE_LOCALE = PokeMMOLocale.getFromString(props.getProperty("launcher_locale"));
 
-			UPDATE_CHANNEL = UpdateChannel.valueOf(props.getProperty("update_channel"));
+			// The channel picks the public key the feeds are verified against, and this applies to
+			// every launch, including the ones that never open the config dialog. So a file may
+			// only name a channel the launcher has marked selectable, the same set the dialog
+			// offers; a hand-written or inherited file is not otherwise bound by that.
+			UpdateChannel channel = UpdateChannel.valueOf(props.getProperty("update_channel"));
+			if(channel.isSelectable())
+			{
+				UPDATE_CHANNEL = channel;
+			}
+			else
+			{
+				System.out.println("Ignoring update_channel " + channel + ": not selectable");
+			}
 		}
 		catch(Exception e)
 		{
@@ -93,27 +121,32 @@ public class Config
 		if(!Launcher.ENABLE_CONFIG)
 			return;
 
+		File configDir = getConfigHome();
+		if(configDir.exists() || configDir.mkdir())
+		{
+			save(getConfigFile());
+		}
+		else
+		{
+			System.out.println("Failed to save configuration for config_dir " + configDir);
+		}
+	}
+
+	static void save(File configFile)
+	{
 		Properties props = new Properties();
 		props.put("network_threads", Integer.toString(NETWORK_THREADS));
 		props.put("update_channel", UPDATE_CHANNEL.toString());
 		props.put("max_mem_hard", Short.toString(HARD_MAX_MEMORY_MB));
 		props.put("launcher_locale", ACTIVE_LOCALE.getLangTag());
 
-		File configDir = getConfigHome();
-		if(configDir.exists() || configDir.mkdir())
+		try
 		{
-			try
-			{
-				props.store(new FileWriter(getConfigFile(), StandardCharsets.UTF_8), "PokeMMO Launcher v" + Launcher.INSTALLER_VERSION + " Properties");
-			}
-			catch(IOException e)
-			{
-				e.printStackTrace();
-			}
+			props.store(new FileWriter(configFile, StandardCharsets.UTF_8), "PokeMMO Launcher v" + Launcher.INSTALLER_VERSION + " Properties");
 		}
-		else
+		catch(IOException e)
 		{
-			System.out.println("Failed to save configuration for config_dir " + configDir);
+			e.printStackTrace();
 		}
 	}
 
