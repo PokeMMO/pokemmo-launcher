@@ -15,6 +15,7 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Formatter;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import com.github.mizosoft.methanol.Methanol;
@@ -321,6 +322,19 @@ public class Util
 		}
 
 		return true;
+	}
+
+	/**
+	 * Reads an environment variable, treating an empty value as unset. The XDG base directory
+	 * specification requires that, and an empty XDG_DATA_HOME taken at face value would produce
+	 * a path relative to the process working directory.
+	 *
+	 * @return the value, or null when the variable is unset or empty
+	 */
+	public static String nonEmptyEnv(Map<String, String> env, String key)
+	{
+		String value = env.get(key);
+		return value == null || value.isEmpty() ? null : value;
 	}
 
 	public static boolean isEnv(String key)
