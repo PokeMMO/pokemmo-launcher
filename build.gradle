@@ -1,5 +1,7 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
+import java.util.function.Predicate
+
 plugins {
     id 'java'
     id 'application'
@@ -45,6 +47,9 @@ dependencies {
     nativesLinuxARM64 'org.eclipse.platform:org.eclipse.swt.gtk.linux.aarch64:3.133.0'
     nativesMacosX64 'org.eclipse.platform:org.eclipse.swt.cocoa.macosx.x86_64:3.133.0'
     nativesMacosARM64 'org.eclipse.platform:org.eclipse.swt.cocoa.macosx.aarch64:3.133.0'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -55,6 +60,10 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)
     }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }
 
 jar {
@@ -135,6 +144,11 @@ graalvmNative {
     agent {
         enabled.set(true)
         defaultMode = "standard" // Can be standard, conditional, or direct
+
+        // -agentlib:native-image-agent only loads under a GraalVM JDK, so instrumenting Test
+        // tasks would make `gradle test` fail on any other JDK 25. Only nativeTestCompile reads
+        // a Test task's agent output, and no native test binary is built here.
+        tasksToInstrumentPredicate = { Task t -> !(t instanceof Test) } as Predicate
     }
 
     metadataRepository {
