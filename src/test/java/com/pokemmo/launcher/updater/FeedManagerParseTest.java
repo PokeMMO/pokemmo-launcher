@@ -74,6 +74,22 @@ class FeedManagerParseTest
 	}
 
 	@Test
+	void skipsAnEntryWhoseNameEscapesTheInstallDirectory() throws Exception
+	{
+		Element feed = parse("""
+				<update_feed>
+				  <file name="../evil.sh" sha256="aa" size="10"/>
+				  <file name="real.pak" sha256="bb" size="10"/>
+				</update_feed>
+				""");
+
+		List<UpdateFile> files = FeedManager.parseUpdateFiles(feed, DIR);
+
+		assertEquals(1, files.size());
+		assertEquals("real.pak", files.get(0).name);
+	}
+
+	@Test
 	void skipsLegacyOptionEntriesBeforeParsingTheirSize() throws Exception
 	{
 		Element feed = parse("""

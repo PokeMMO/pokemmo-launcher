@@ -51,7 +51,7 @@ public class FeedManager
 	 */
 	private static final int FEED_DEADLINE_SECONDS = 45;
 
-	public static void load(LauncherUI launcherUI)
+	public static void load(LauncherUI launcherUI, File pokemmoDir)
 	{
 		UpdateChannel channel = Config.UPDATE_CHANNEL;
 
@@ -117,7 +117,6 @@ public class FeedManager
 					MIN_REVISION = Integer.parseInt(main_feed.getElementsByTagName("min_revision").item(0).getTextContent());
 				}
 
-				File current_directory = new File(".");
 				dbf = secureDocumentBuilderFactory();
 				db = dbf.newDocumentBuilder();
 				is = new InputSource(new StringReader(new String(updateFeedRaw, StandardCharsets.UTF_8)));
@@ -150,7 +149,7 @@ public class FeedManager
 					}
 				}
 
-				List<UpdateFile> parsed = parseUpdateFiles(update_feed, current_directory);
+				List<UpdateFile> parsed = parseUpdateFiles(update_feed, pokemmoDir);
 
 				//Make sure we have at least 1 normal file
 				if(parsed.isEmpty())
@@ -205,11 +204,11 @@ public class FeedManager
 	 * An entry the launcher cannot act on is skipped on its own rather than abandoning the
 	 * whole feed, so a single malformed entry does not cost us an otherwise healthy mirror.
 	 *
-	 * @param update_feed       the update_feed element to read
-	 * @param current_directory the directory entry names must resolve inside
+	 * @param update_feed the update_feed element to read
+	 * @param pokemmoDir  the install directory entry names must resolve inside
 	 * @return the entries that were usable, in feed order
 	 */
-	static List<UpdateFile> parseUpdateFiles(Element update_feed, File current_directory)
+	static List<UpdateFile> parseUpdateFiles(Element update_feed, File pokemmoDir)
 	{
 		List<UpdateFile> parsed = new ArrayList<>();
 		NodeList filesNodeList = update_feed.getElementsByTagName("file");
@@ -226,7 +225,7 @@ public class FeedManager
 			if(!file.getAttribute("option_name").isEmpty())
 				continue;
 
-			String sanitized = Util.sanitize(current_directory, file.getAttribute("name"));
+			String sanitized = Util.sanitize(pokemmoDir, file.getAttribute("name"));
 			if(sanitized == null)
 			{
 				System.out.println("Skipping feed entry with an unsafe name: " + file.getAttribute("name"));

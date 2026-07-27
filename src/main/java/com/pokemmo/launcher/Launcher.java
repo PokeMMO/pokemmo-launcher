@@ -861,7 +861,7 @@ public class Launcher
 	private boolean downloadFeeds()
 	{
 		launcherUI.setStatus("status.networking.load", 0);
-		FeedManager.load(launcherUI);
+		FeedManager.load(launcherUI, pokemmoDir);
 
 		if(!FeedManager.SUCCESSFUL)
 		{
