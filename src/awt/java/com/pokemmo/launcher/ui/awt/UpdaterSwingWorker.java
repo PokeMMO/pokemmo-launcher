@@ -44,13 +44,15 @@ public class UpdaterSwingWorker extends SwingWorker<Void, Void>
 		{
 			e.printStackTrace();
 			failed.add(e);
+			success = false;
 		}
 		finally
 		{
 			if(success)
 			{
-				parent.doUpdate(repair);
-				SwingUtilities.invokeLater(mainFrame::setCanStart);
+				// Only an update that matched every feed hash may enable the launch button
+				if(parent.doUpdate(repair))
+					SwingUtilities.invokeLater(mainFrame::setCanStart);
 			}
 			else
 				SwingUtilities.invokeLater(() -> mainFrame.showErrorWithStacktrace(Config.getString("error.dir_not_accessible", parent.getPokemmoDir().getAbsolutePath(), "REPAIR_FAILED"), "", failed.toArray(new Throwable[0]), () -> System.exit(Launcher.EXIT_CODE_IO_FAILURE)));
