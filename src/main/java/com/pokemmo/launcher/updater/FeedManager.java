@@ -183,7 +183,10 @@ public class FeedManager
 	}
 
 	/**
-	 * Whether an out of date client must take the repair path rather than a plain update.
+	 * Whether a client that failed verification must take the repair path, which clears the caches,
+	 * rather than a plain update. An install below the floor is simply out of date and a plain update
+	 * brings it current. One at or above the floor claims to be current yet failed verification, so
+	 * its files disagree with the revision it declares and only a repair resolves that.
 	 *
 	 * @param revision    the value read from revision.txt, or a non-positive number when it could not be read
 	 * @param minRevision the floor published by the main feed, or 0 when the feed omits the element
@@ -195,7 +198,7 @@ public class FeedManager
 			return true;
 		}
 
-		return minRevision > 0 && revision < minRevision;
+		return minRevision > 0 && revision >= minRevision;
 	}
 
 	/**

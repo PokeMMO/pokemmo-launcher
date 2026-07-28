@@ -15,28 +15,29 @@ class FeedManagerRevisionTest
 	}
 
 	@Test
-	void aRevisionAtTheFloorIsHealthy()
+	void aRevisionBelowTheFloorIsAPlainUpdate()
 	{
-		assertFalse(FeedManager.needsRepair(31914, 31914),
-				"a client that is exactly current must not be forced through repair");
+		assertFalse(FeedManager.needsRepair(31000, 31914),
+				"an out of date install is what a plain update exists to fix, and must keep its caches");
 	}
 
 	@Test
-	void aRevisionAboveTheFloorIsHealthy()
+	void aRevisionAtTheFloorNeedsRepair()
 	{
-		assertFalse(FeedManager.needsRepair(31915, 31914));
+		assertTrue(FeedManager.needsRepair(31914, 31914),
+				"the install declares itself current yet failed verification, so its files disagree with revision.txt");
 	}
 
 	@Test
-	void aRevisionBelowTheFloorNeedsRepair()
+	void aRevisionAboveTheFloorNeedsRepair()
 	{
-		assertTrue(FeedManager.needsRepair(31000, 31914));
+		assertTrue(FeedManager.needsRepair(31915, 31914));
 	}
 
 	@Test
 	void anUnsetFloorNeverForcesRepairForAReadableRevision()
 	{
 		assertFalse(FeedManager.needsRepair(31914, 0),
-				"a feed with no min_revision element publishes no floor to fall below");
+				"a feed with no min_revision element publishes no floor to compare against");
 	}
 }
