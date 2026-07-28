@@ -67,8 +67,8 @@ import com.pokemmo.launcher.util.WindowsUtil;
  */
 public class Launcher
 {
-	public static final int INSTALLER_VERSION = 60;
-	public static final String INSTALLER_VERSION_CODE = "4.0c";
+	public static final int INSTALLER_VERSION = 61;
+	public static final String INSTALLER_VERSION_CODE = "4.0d";
 
 	public static final int EXIT_CODE_SUCCESS = 0;
 	public static final int EXIT_CODE_NETWORK_FAILURE = 1;
@@ -190,6 +190,7 @@ public class Launcher
 
 		System.out.println("=================================================");
 		System.out.println("Running Launcher");
+		System.out.println("Version: " + INSTALLER_VERSION_CODE);
 		System.out.println("Channel: " + Config.UPDATE_CHANNEL);
 		System.out.println("OS: " + OS.get());
 		System.out.println("Arch: " + Arch.get());
