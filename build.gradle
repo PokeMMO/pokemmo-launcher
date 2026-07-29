@@ -235,7 +235,7 @@ graalvmNative {
             resources {
                 includedPatterns.addAll(".*\\.dylib\$", ".*\\.jnilib\$")
             }
-            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.cocoa.*")
+            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.cocoa.*", "--native-compiler-options=-mmacosx-version-min=11", "-H:NativeLinkerOption=-mmacosx-version-min=11")
             jvmArgs.addAll("-XstartOnFirstThread")
         }
         create("MacosX64") {
@@ -243,7 +243,7 @@ graalvmNative {
             resources {
                 includedPatterns.addAll(".*\\.dylib\$", ".*\\.jnilib\$")
             }
-            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.cocoa.*")
+            buildArgs.addAll("-H:Preserve=package=org.eclipse.swt.internal.cocoa.*", "--native-compiler-options=-arch", "--native-compiler-options=x86_64", "--native-compiler-options=-mmacosx-version-min=10.15", "-H:NativeLinkerOption=-mmacosx-version-min=10.15")
             jvmArgs.addAll("-XstartOnFirstThread")
         }
     }
