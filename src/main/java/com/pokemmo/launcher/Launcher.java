@@ -68,7 +68,7 @@ import com.pokemmo.launcher.util.WindowsUtil;
 public class Launcher
 {
 	public static final int INSTALLER_VERSION = 62;
-	public static final String INSTALLER_VERSION_CODE = "4.0e";
+	public static final String INSTALLER_VERSION_CODE = "4.0f";
 
 	public static final int EXIT_CODE_SUCCESS = 0;
 	public static final int EXIT_CODE_NETWORK_FAILURE = 1;
